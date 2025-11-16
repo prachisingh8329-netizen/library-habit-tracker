@@ -1,97 +1,112 @@
-import os
-import json
-from flask import Flask, render_template, request, jsonify, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, session, jsonify
+import json, os
 
-app = Flask(__name__, template_folder="templates", static_folder="static")
+app = Flask(__name__)
+app.secret_key = "your_secret_key_here"
 
-# Secret key for sessions: use env var in Render (optional)
-app.secret_key = os.getenv("SECRET_KEY", "dev-secret-for-local")  # set SECRET_KEY in Render for security
+# -------------------- USER DATABASE FILE --------------------
+USER_DB = "users.json"
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
-DATA_FILE = os.path.join(DATA_DIR, "users.json")
-os.makedirs(DATA_DIR, exist_ok=True)
-if not os.path.exists(DATA_FILE):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump([], f, indent=2)
+def load_users():
+    if os.path.exists(USER_DB):
+        with open(USER_DB, "r") as f:
+            return json.load(f)
+    return {}
 
-def read_users():
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+def save_users(data):
+    with open(USER_DB, "w") as f:
+        json.dump(data, f, indent=4)
 
-def write_users(users):
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(users, f, indent=2)
 
-# ----- Routes (pages) -----
+# -------------------- HOME PAGE --------------------
 @app.route("/")
 def home():
     return render_template("index.html")
 
-@app.route("/signup")
-def signup_page():
-    return render_template("signup.html")
 
-@app.route("/login")
-def login_page():
-    return render_template("login.html")
+# -------------------- SIGNUP --------------------
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "GET":
+        return render_template("signup.html")
 
+    users = load_users()
+    email = request.json.get("email")
+    password = request.json.get("password")
+
+    if email in users:
+        return jsonify({"status": "exists"})
+
+    users[email] = {"password": password}
+    save_users(users)
+
+    return jsonify({"status": "success"})
+
+
+# -------------------- LOGIN --------------------
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "GET":
+        return render_template("login.html")
+
+    users = load_users()
+    email = request.json.get("email")
+    password = request.json.get("password")
+
+    if email in users and users[email]["password"] == password:
+        session["user"] = email
+        return jsonify({"status": "success"})
+
+    return jsonify({"status": "fail"})
+
+
+# -------------------- DASHBOARD --------------------
 @app.route("/dashboard")
-def dashboard_page():
-    if not session.get("user_email"):
-        return redirect(url_for("login_page"))
-    # send dashboard with session user name available
-    return render_template("dashboard.html", user_name=session.get("user_name"))
+def dashboard():
+    if "user" not in session:
+        return redirect("/login")
 
-@app.route("/scan-book")
-def scan_book_page():
-    if not session.get("user_email"):
-        return redirect(url_for("login_page"))
-    return render_template("scan_book.html")
+    user_email = session["user"]
+    return render_template("dashboard.html", user_name=user_email.split("@")[0])
 
+
+# -------------------- LOGOUT --------------------
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("home"))
+    return redirect("/")
 
-# ----- API endpoints -----
-@app.route("/api/signup", methods=["POST"])
-def api_signup():
-    data = request.get_json() or {}
-    name = (data.get("name") or "").strip()
-    email = (data.get("email") or "").strip().lower()
-    password = data.get("password") or ""
 
-    if not name or not email or not password:
-        return jsonify({"message": "All fields are required"}), 400
+# -------------------- READ BOOK PAGE --------------------
+@app.route("/read-book/<int:book_id>")
+def read_book(book_id):
 
-    users = read_users()
-    if any(u.get("email") == email for u in users):
-        return jsonify({"message": "User already exists"}), 400
+    BOOKS = {
+        1: {"title": "Introduction to Algorithms (CLRS)",
+            "pdf": "https://ia800503.us.archive.org/28/items/IntroductionToAlgorithmsThirdEdition/Introduction%20to%20Algorithms%20-%20Third%20Edition.pdf"},
 
-    users.append({"name": name, "email": email, "password": password})
-    write_users(users)
-    return jsonify({"message": "Signup successful", "user": {"name": name, "email": email}}), 200
+        2: {"title": "Computer Networks - Tanenbaum",
+            "pdf": "https://ncert.nic.in/textbook/pdf/lecs1dd.zip"},
 
-@app.route("/api/login", methods=["POST"])
-def api_login():
-    data = request.get_json() or {}
-    email = (data.get("email") or "").strip().lower()
-    password = data.get("password") or ""
+        3: {"title": "Operating System Concepts",
+            "pdf": "https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/"},
 
-    users = read_users()
-    user = next((u for u in users if u["email"] == email and u["password"] == password), None)
-    if not user:
-        return jsonify({"message": "Invalid email or password"}), 401
+        4: {"title": "Database System Concepts - Korth",
+            "pdf": "https://www.db-book.com/slides-dir/"},
 
-    # set session
-    session["user_email"] = user["email"]
-    session["user_name"] = user.get("name", "")
-    return jsonify({"message": "Login successful", "user": {"name": user.get("name"), "email": user.get("email")}}), 200
+        5: {"title": "Let Us C - Kanetkar",
+            "pdf": "https://archive.org/details/letusC"},
 
-# simple health check
-@app.route("/ping")
-def ping():
-    return "pong"
+        6: {"title": "Python Crash Course",
+            "pdf": "https://ehmatthes.github.io/pcc_2e/"}
+    }
 
+    if book_id not in BOOKS:
+        return "Book Not Found", 404
+
+    return render_template("read_book.html", book=BOOKS[book_id])
+
+
+# -------------------- RUN APP --------------------
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
