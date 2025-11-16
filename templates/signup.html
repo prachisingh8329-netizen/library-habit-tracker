@@ -1,29 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signup | Library Habit Tracker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="utf-8">
+  <title>Sign Up | Library Habit Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* exact same styles from your original signup */
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .circle { position: absolute; border-radius: 50%; background: rgba(255,255,255,0.2); animation: float 10s infinite; }
+    .circle:nth-child(1){ width:150px;height:150px; top:10%; left:15%; animation-delay:0s; }
+    .circle:nth-child(2){ width:200px;height:200px; bottom:15%; right:20%; animation-delay:3s; }
+    @keyframes float { 0%,100%{transform:translateY(0px);} 50%{transform:translateY(-20px);} }
+    .signup-container{
+      position: relative;
+      width: 380px;
+      padding: 40px 35px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+      color: #fff;
+      text-align: center;
+    }
+    .signup-container h2 { margin-bottom:20px; font-size:26px; letter-spacing:1px; font-weight:600; }
+    .signup-container p { font-size:14px; color:#cfd9df; margin-bottom:25px; }
+    .signup-container input{ width:100%; padding:12px 15px; margin:8px 0; border:none; border-radius:10px; background: rgba(255,255,255,0.1); color:#fff; font-size:15px; transition:0.3s; }
+    .signup-container input::placeholder { color:#d8e2f3; }
+    .signup-container button { margin-top:15px; width:100%; background:#4da3ff; color:white; border:none; padding:12px; font-size:16px; border-radius:10px; cursor:pointer; font-weight:600; }
+    .signup-container .login-link { margin-top:20px; font-size:14px; color:#e0eaff; }
+    .signup-container .login-link a { color:#fff; text-decoration:underline; font-weight:bold; }
+    @media (max-width:450px) { .signup-container { width:90%; padding:30px 20px; } }
+  </style>
 </head>
-
 <body>
-    <div class="container">
-        <h2>Create Account</h2>
+  <div class="circle"></div>
+  <div class="circle"></div>
 
-        <form onsubmit="signupUser(event)">
-            <input type="text" id="name" placeholder="Full Name" required>
-            <input type="email" id="email" placeholder="Email Address" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit" class="btn">Signup</button>
-        </form>
+  <div class="signup-container">
+    <h2>📚 Library Habit Tracker</h2>
+    <p>Create your free account to start your reading journey!</p>
 
-        <p>Already have an account?  
-           <a href="/login-page">Login</a>
-        </p>
+    <form onsubmit="signupUser(event)">
+      <input id="name" type="text" placeholder="Full Name" required>
+      <input id="email" type="email" placeholder="Email Address" required>
+      <input id="password" type="password" placeholder="Password" required>
+      <button type="submit">Sign Up</button>
+    </form>
+
+    <div class="login-link">
+      Already have an account? <a href="/login">Login</a>
     </div>
+  </div>
 
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
