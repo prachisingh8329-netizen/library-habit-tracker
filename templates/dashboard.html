@@ -34,6 +34,8 @@
       border-bottom: 2px solid rgba(255, 255, 255, 0.3);
     }
 
+    a { color:#1e293b; text-decoration:none; font-weight:bold; }
+
     .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
 
     .section {
@@ -47,24 +49,14 @@
 
     h2 { margin-bottom: 15px; font-weight: 600; }
 
-    select, input[type="text"], textarea {
+    input, select, textarea {
       width: 100%;
-      padding: 12px 15px;
+      padding: 12px;
       border-radius: 12px;
       border: none;
-      background: rgba(255, 255, 255, 0.5);
-      color: #1e293b;
-      font-size: 15px;
-      margin-top: 5px;
-    }
-
-    .book-card {
       background: rgba(255,255,255,0.5);
-      border-radius: 12px;
-      padding: 15px;
-      margin-top: 15px;
-      display: none;
-      color: #1e293b;
+      margin-top: 5px;
+      font-size: 15px;
     }
 
     .btn {
@@ -75,8 +67,53 @@
       border-radius: 10px;
       cursor: pointer;
       font-weight: bold;
-      transition: 0.3s;
       margin-top: 10px;
+    }
+
+    .btn:hover {
+      background: #1e80ff;
+    }
+
+    /* ---------------- CALENDAR FIX ---------------- */
+
+    #calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .header {
+      background: rgba(255,255,255,0.85);
+      padding: 10px;
+      font-weight: 700;
+      border-radius: 10px;
+      color: #1e293b;
+    }
+
+    .day {
+      background: rgba(255,255,255,0.7);
+      padding: 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 500;
+    }
+
+    .day:hover {
+      background: rgba(255,255,255,0.95);
+      transform: scale(1.05);
+    }
+
+    /* ------------------------------------------------ */
+
+    .book-card {
+      background: rgba(255,255,255,0.5);
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 15px;
+      display: none;
     }
   </style>
 </head>
@@ -86,7 +123,7 @@
   📚 Library Habit Tracker Dashboard  
   <br> 👋 Welcome, <b>{{ user_name }}</b>
   <br>
-  <a href="/logout" style="color:#1e293b;font-size:16px;text-decoration:none;">🚪 Logout</a>
+  <a href="/logout">🚪 Logout</a>
 </header>
 
 <div class="container">
@@ -94,7 +131,7 @@
   <div class="section">
     <h2>😊 How are you feeling today?</h2>
     <select id="moodSelect">
-      <option value="" disabled selected>Select your mood</option>
+      <option disabled selected>Select your mood</option>
       <option>😊 Happy</option>
       <option>😌 Calm</option>
       <option>🤩 Motivated</option>
@@ -105,28 +142,27 @@
   </div>
 
   <div class="section">
-    <h2>🔍 Search a Book</h2>
-    <input type="text" id="bookSearch" placeholder="Type book name to search..." />
-    <div id="searchResults" style="margin-top:10px;"></div>
+    <h2>🔍 Search a Computer Science Book</h2>
+    <input type="text" id="bookSearch" placeholder="Type book name..." />
+    <div id="searchResults" style="margin-top:15px;"></div>
   </div>
 
   <div class="section">
-    <h2>📘 Enter Book Serial Number</h2>
-    <input type="text" id="bookInput" placeholder="Enter serial number (1-3)" />
-    <button class="btn" onclick="showBookDetails()">Show Book Details</button>
-
+    <h2>📘 Get Book By Serial Number</h2>
+    <input type="text" id="bookInput" placeholder="1 - 3" />
+    <button class="btn" onclick="showBookDetails()">Show Book</button>
     <div class="book-card" id="bookCard"></div>
   </div>
 
   <div class="section">
     <h2>💬 Add Comment</h2>
-    <textarea id="commentInput" placeholder="Write your thoughts..."></textarea>
+    <textarea id="commentInput" placeholder="Write something..."></textarea>
     <button class="btn" onclick="saveComment()">Save Comment</button>
     <div class="comment-display" id="commentDisplay"></div>
   </div>
 
   <div class="section">
-    <div class="month-control">
+    <div class="month-control" style="display:flex;justify-content:space-between;">
       <button id="prevMonth">◀ Prev</button>
       <h2 id="monthLabel"></h2>
       <button id="nextMonth">Next ▶</button>
@@ -141,20 +177,20 @@
 
 </div>
 
+
 <script>
-window.onload = () => {
-  const msg = new SpeechSynthesisUtterance("Welcome to your library habit tracker!");
-  window.speechSynthesis.speak(msg);
-};
+/* ---------------- SEARCH DATABASE ---------------- */
 
 const csBooks = [
-  { id: 1, title: "Introduction to Algorithms (CLRS)", author: "CLRS", summary: "Algorithm bible covers sorting, trees, DP.", url: "dummy" },
-  { id: 2, title: "Computer Networks", author: "Tanenbaum", summary: "Deep explanation of computer networks.", url: "dummy" },
-  { id: 3, title: "Operating System Concepts", author: "Silberschatz", summary: "Covers OS architecture, memory, scheduling.", url: "dummy" },
-  { id: 4, title: "Database System Concepts", author: "Korth", summary: "SQL, ER diagrams, normalization.", url: "dummy" },
-  { id: 5, title: "Let Us C", author: "Yashwant Kanetkar", summary: "The best beginner friendly C book.", url: "dummy" },
-  { id: 6, title: "Python Crash Course", author: "Eric Matthes", summary: "Python automation + projects.", url: "dummy" }
+  { id: 1, title: "Introduction to Algorithms (CLRS)", author: "CLRS", summary: "Full algorithm bible" },
+  { id: 2, title: "Computer Networks", author: "Tanenbaum", summary: "Network architecture explained" },
+  { id: 3, title: "Operating System Concepts", author: "Silberschatz", summary: "OS memory, scheduling, processes" },
+  { id: 4, title: "Database System Concepts", author: "Korth", summary: "SQL, DBMS, transactions" },
+  { id: 5, title: "Let Us C", author: "Kanetkar", summary: "Beginner-friendly C book" },
+  { id: 6, title: "Python Crash Course", author: "Eric Matthes", summary: "Python projects & automation" }
 ];
+
+/* ---------------- SEARCH FUNCTION ---------------- */
 
 document.getElementById("bookSearch").addEventListener("input", function() {
   const q = this.value.toLowerCase();
@@ -165,18 +201,18 @@ document.getElementById("bookSearch").addEventListener("input", function() {
 
   filtered.forEach(book => {
     const div = document.createElement("div");
-    div.style.padding = "10px";
-    div.style.background = "rgba(255,255,255,0.7)";
-    div.style.marginBottom = "8px";
+    div.style.padding = "12px";
+    div.style.background = "rgba(255,255,255,0.8)";
+    div.style.marginBottom = "10px";
     div.style.borderRadius = "10px";
     div.style.cursor = "pointer";
     div.innerHTML = `<b>${book.title}</b><br><small>${book.author}</small>`;
-
     div.onclick = () => showCSBookDetails(book);
-
     output.appendChild(div);
   });
 });
+
+/* ---------------- BOOK DETAILS ---------------- */
 
 function showCSBookDetails(book) {
   const card = document.getElementById("bookCard");
@@ -184,38 +220,44 @@ function showCSBookDetails(book) {
     <strong>Title:</strong> ${book.title}<br>
     <strong>Author:</strong> ${book.author}<br>
     <strong>Summary:</strong> ${book.summary}<br><br>
-    <a href="/read-book/${book.id}" style="font-weight:bold;color:#1e293b;">📖 Read Book</a>
+    <a href="/read-book/${book.id}">📖 Read Book</a>
   `;
   card.style.display = "block";
 }
 
+/* ---------------- SERIAL NUMBER BOOKS ---------------- */
+
 const books = {
-  1: { title: "The Alchemist", summary: "Dreams + destiny.", reflection: "Follow your heart." },
-  2: { title: "Atomic Habits", summary: "Small habits → big success.", reflection: "Improve 1% daily." },
-  3: { title: "Ikigai", summary: "Purpose + meaning.", reflection: "Find your joy." }
+  1: { title: "The Alchemist", summary: "Dreams and purpose", reflection: "Follow your path" },
+  2: { title: "Atomic Habits", summary: "Habits → success", reflection: "Small gains daily" },
+  3: { title: "Ikigai", summary: "Purpose of life", reflection: "Live calm & focused" }
 };
 
 function showBookDetails() {
   const num = document.getElementById("bookInput").value.trim();
-  const c = document.getElementById("bookCard");
+  const card = document.getElementById("bookCard");
 
   if (books[num]) {
     const b = books[num];
-    c.innerHTML = `
+    card.innerHTML = `
       <strong>Title:</strong> ${b.title}<br>
       <strong>Summary:</strong> ${b.summary}<br>
       <strong>Reflection:</strong> ${b.reflection}
     `;
   } else {
-    c.innerHTML = "❌ Invalid serial number";
+    card.innerHTML = "❌ Invalid serial number";
   }
-  c.style.display = "block";
+  card.style.display = "block";
 }
+
+/* ---------------- COMMENTS ---------------- */
 
 function saveComment() {
   const text = document.getElementById("commentInput").value.trim();
-  document.getElementById("commentDisplay").innerHTML = text ? `💬 ${text}` : "⚠ Write something first!";
+  document.getElementById("commentDisplay").innerHTML = text ? `💬 ${text}` : "⚠ Write something!";
 }
+
+/* ---------------- CALENDAR + CHART ---------------- */
 
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 let currentMonth = new Date().getMonth();
@@ -230,15 +272,16 @@ function renderCalendar() {
   const firstDay = new Date(currentYear, currentMonth, 1).getDay();
   const days = new Date(currentYear, currentMonth+1, 0).getDate();
 
-  const weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  weekdays.forEach(d => {
+  const weekNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  weekNames.forEach(day => {
     const h = document.createElement("div");
     h.className = "header";
-    h.textContent = d;
+    h.textContent = day;
     cal.appendChild(h);
   });
 
   for (let i=0;i<firstDay;i++) cal.appendChild(document.createElement("div"));
+
   for (let d=1; d<=days; d++){
     const box = document.createElement("div");
     box.className = "day";
@@ -260,7 +303,7 @@ function renderChart() {
     type:"bar",
     data:{
       labels,
-      datasets:[{label:`${months[currentMonth]} Progress`, data, backgroundColor:"#4da3ff"}]
+      datasets:[{ label:`${months[currentMonth]} Progress`, data, backgroundColor:"#4da3ff" }]
     }
   });
 }
@@ -273,12 +316,12 @@ function updateChart(day){
 }
 
 document.getElementById("prevMonth").onclick = () => {
-  currentMonth--; if (currentMonth < 0) { currentMonth=11; currentYear--; }
+  currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; }
   renderCalendar();
 };
 
 document.getElementById("nextMonth").onclick = () => {
-  currentMonth++; if (currentMonth > 11) { currentMonth=0; currentYear++; }
+  currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; }
   renderCalendar();
 };
 
@@ -287,4 +330,3 @@ renderCalendar();
 
 </body>
 </html>
-
