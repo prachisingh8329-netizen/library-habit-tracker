@@ -1,114 +1,368 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Dashboard | Library Habit Tracker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library Habit Tracker | Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
-    /* same CSS snippet as your dashboard file for identical UI */
     * { box-sizing: border-box; font-family: "Poppins", sans-serif; }
-    body { margin: 0; background: linear-gradient(135deg, #1e3c72, #2a5298); color: #fff; min-height: 100vh; overflow-x: hidden; }
-    header { display:flex; justify-content:space-between; align-items:center; background: rgba(255,255,255,0.1); padding:15px 30px; backdrop-filter: blur(8px); box-shadow:0 2px 10px rgba(0,0,0,0.3); }
-    header h1 { font-size:22px; letter-spacing:1px; }
-    header input[type="text"] { padding:8px 12px; border-radius:10px; border:none; width:220px; }
-    .container { padding:25px 40px; }
-    .section { background: rgba(255,255,255,0.1); border-radius:15px; padding:20px; margin-bottom:25px; backdrop-filter: blur(10px); }
-    .calendar { display:grid; grid-template-columns:repeat(7,1fr); gap:10px; text-align:center; color:#e0eaff; }
-    .calendar div { background: rgba(255,255,255,0.1); border-radius:8px; padding:12px 0; font-size:14px; }
-    .calendar .header { font-weight:bold; background: rgba(255,255,255,0.25); }
-    table { width:100%; border-collapse:collapse; color:#fff; margin-top:10px; }
-    th, td { text-align:left; padding:12px; border-bottom:1px solid rgba(255,255,255,0.2); }
-    th { background: rgba(255,255,255,0.2); }
-    tr:hover { background: rgba(255,255,255,0.1); }
-    #bookSearch { width:300px; padding:8px 12px; border-radius:10px; border:none; }
+
+    body {
+      margin: 0;
+      color: #1e293b;
+      min-height: 100vh;
+      background: linear-gradient(120deg, #d5dee7, #ffafbd, #ffc3a0, #a1c4fd);
+      background-size: 400% 400%;
+      animation: gradientShift 12s ease infinite;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    header {
+      padding: 20px;
+      text-align: center;
+      font-size: 26px;
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(8px);
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+
+    .section {
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 30px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    h2 { margin-bottom: 15px; font-weight: 600; }
+
+    select, input[type="text"], textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border-radius: 12px;
+      border: none;
+      background: rgba(255, 255, 255, 0.5);
+      color: #1e293b;
+      font-size: 15px;
+      margin-top: 5px;
+    }
+
+    input::placeholder, textarea::placeholder { color: #333; }
+
+    .month-control {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .month-control button {
+      background: rgba(255, 255, 255, 0.4);
+      border: none;
+      color: #1e293b;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    .month-control button:hover { background: rgba(255, 255, 255, 0.6); }
+
+    #calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .day, .header {
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 10px;
+      padding: 10px 0;
+      color: #1e293b;
+      font-weight: 500;
+    }
+
+    .header { font-weight: bold; background: rgba(255, 255, 255, 0.8); }
+    .day:hover { background: rgba(255, 255, 255, 0.9); cursor: pointer; }
+
+    .chart-container { width: 100%; height: 300px; }
+
+    .btn {
+      background: #4da3ff;
+      border: none;
+      padding: 10px 20px;
+      color: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+      margin-top: 10px;
+    }
+
+    .btn:hover { background: #1e80ff; transform: scale(1.05); }
+
+    .book-card {
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 15px;
+      color: #1e293b;
+      display: none;
+    }
+
+    .comment-box {
+      margin-top: 20px;
+    }
+
+    .comment-display {
+      margin-top: 15px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 10px;
+      padding: 15px;
+      color: #1e293b;
+      border-left: 4px solid #4da3ff;
+    }
   </style>
 </head>
 <body>
+
   <header>
-    <h1>📚 Library Habit Tracker Dashboard</h1>
-    <div>
-      <input id="bookSearch" type="text" placeholder="🔍 Search a book.">
-      <a href="/scan-book" style="margin-left:12px; color:#fff; text-decoration:none;">Scan Book</a>
-      <a href="/logout" style="margin-left:12px; color:#fff; text-decoration:none;">Logout</a>
-    </div>
+    📚 Library Habit Tracker Dashboard  
+    <br>
+    👋 Welcome, <b>{{ user_name }}</b>
+    <br>
+    <a href="/scan-book" style="color:#1e293b; text-decoration:none; font-size:16px;">🔍 Scan Book</a> |
+    <a href="/logout" style="color:#1e293b; text-decoration:none; font-size:16px;">🚪 Logout</a>
   </header>
 
   <div class="container">
-    <div class="section mood-section">
-      <h2>😊 Hello, <span id="userName">{{ user_name }}</span></h2>
-      <input placeholder="Write your mood. (e.g., Excited to read!)">
+
+    <!-- Mood Section -->
+    <div class="section">
+      <h2>😊 How are you feeling today?</h2>
+      <select id="moodSelect">
+        <option value="" disabled selected>Select your mood</option>
+        <option>😊 Happy</option>
+        <option>😌 Calm</option>
+        <option>🤩 Motivated</option>
+        <option>😔 Tired</option>
+        <option>😤 Stressed</option>
+        <option>😴 Sleepy</option>
+      </select>
     </div>
 
+    <!-- Search Book -->
     <div class="section">
-      <h2>📅 Monthly Reading Calendar (November 2025)</h2>
-      <div class="calendar" id="calendar"></div>
+      <h2>🔍 Search a Book</h2>
+      <input type="text" id="bookSearch" placeholder="Type book name to search..." />
+      <div id="searchResults" style="margin-top:10px; color:#1f2937; font-size:14px;"></div>
     </div>
 
+    <!-- Calendar -->
     <div class="section">
-      <h2>📈 Reading Progress Graph</h2>
-      <div style="width:100%;height:300px;">
+      <div class="month-control">
+        <button id="prevMonth">◀ Prev</button>
+        <h2 id="monthLabel"></h2>
+        <button id="nextMonth">Next ▶</button>
+      </div>
+      <div id="calendar"></div>
+    </div>
+
+    <!-- Graph -->
+    <div class="section">
+      <h2>📊 Weekly Reading Progress (7 Weeks)</h2>
+      <div class="chart-container">
         <canvas id="readingChart"></canvas>
       </div>
-    </div>
 
-    <div class="section">
-      <h2>📖 Your Reading Log</h2>
-      <table id="bookTable">
-        <thead>
-          <tr><th>Serial No.</th><th>Book Title</th><th>Comments / Reflection</th><th>Date</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>1</td><td>The Power of Habit</td><td>Loved the examples of how habits shape life.</td><td>2025-11-05</td></tr>
-          <tr><td>2</td><td>Atomic Habits</td><td>Very motivating — small steps matter!</td><td>2025-11-07</td></tr>
-        </tbody>
-      </table>
-    </div>
+      <!-- Serial Number + Comment Section -->
+      <div class="comment-box">
+        <h2>📘 Enter Book Serial Number</h2>
+        <input type="text" id="bookInput" placeholder="Enter serial number (e.g., 1, 2, 3...)" />
+        <button class="btn" onclick="showBookDetails()">Show Book Details</button>
 
+        <div class="book-card" id="bookCard"></div>
+
+        <h2 style="margin-top:25px;">💬 Add Comment / Reflection</h2>
+        <textarea id="commentInput" placeholder="Write your thoughts about this book..."></textarea>
+        <button class="btn" onclick="saveComment()">Save Comment</button>
+
+        <div class="comment-display" id="commentDisplay"></div>
+      </div>
+    </div>
   </div>
 
   <script>
-    // Calendar generation (same logic)
-    const calendarContainer = document.getElementById('calendar');
-    const daysOfWeek = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-    const daysInMonth = 30;
-    const startDay = 6;
-    calendarContainer.innerHTML = "";
-    daysOfWeek.forEach(day => { const d = document.createElement("div"); d.textContent = day; d.classList.add("header"); calendarContainer.appendChild(d); });
-    for (let i = 0; i < startDay; i++) calendarContainer.appendChild(document.createElement("div"));
-    for (let d = 1; d <= daysInMonth; d++){ const dv = document.createElement("div"); dv.textContent = d; calendarContainer.appendChild(dv); }
+    const voices = [
+      "Keep going, you're doing great!",
+      "Every page you read is progress!",
+      "Stay curious, the world is full of stories!",
+      "You're growing with every book you read!",
+      "Books are your superpower — keep going!"
+    ];
+    function speakRandomMessage() {
+      const msg = new SpeechSynthesisUtterance();
+      msg.text = voices[Math.floor(Math.random() * voices.length)];
+      msg.lang = "en-US";
+      msg.rate = 1;
+      msg.pitch = 1;
+      window.speechSynthesis.speak(msg);
+    }
+    window.onload = speakRandomMessage;
 
-    // Chart
-    const ctx = document.getElementById('readingChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ["Week 1", "Week 2", "Week 3", "Week 4"],
-        datasets: [{
-          label: 'Pages Read',
-          data: [45, 68, 90, 110],
-          borderColor: '#4da3ff',
-          backgroundColor: 'rgba(77,163,255,0.3)',
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: {
-        scales: {
-          y: { beginAtZero:true, ticks:{ color:"#fff" }, grid:{ color:"rgba(255,255,255,0.2)"} },
-          x: { ticks:{ color:"#fff" }, grid:{ color:"rgba(255,255,255,0.2)"} }
-        },
-        plugins: { legend:{ labels:{ color:"#fff" } } }
+    // Book database
+    const books = {
+      1: { title: "The Alchemist", summary: "A young shepherd follows his dream to find treasure.", reflection: "Believe in your journey." },
+      2: { title: "Atomic Habits", summary: "Small habits create life-changing results.", reflection: "Tiny steps matter." },
+      3: { title: "Ikigai", summary: "Finding joy and purpose in everyday life.", reflection: "Purpose makes life peaceful." },
+      4: { title: "Deep Work", summary: "Focus deeply to master productivity.", reflection: "Discipline creates excellence." }
+    };
+
+    function showBookDetails() {
+      const num = document.getElementById("bookInput").value.trim();
+      const card = document.getElementById("bookCard");
+
+      if (books[num]) {
+        const b = books[num];
+        card.innerHTML = `
+          <strong>Title:</strong> ${b.title}<br>
+          <strong>Summary:</strong> ${b.summary}<br>
+          <strong>Reflection:</strong> ${b.reflection}
+        `;
+        card.style.display = "block";
+      } else {
+        card.innerHTML = "⚠️ No book found with that serial number.";
+        card.style.display = "block";
       }
+    }
+
+    function saveComment() {
+      const text = document.getElementById("commentInput").value.trim();
+      const display = document.getElementById("commentDisplay");
+      if (text) {
+        display.innerHTML = "💬 " + text;
+        document.getElementById("commentInput").value = "";
+      } else {
+        display.innerHTML = "⚠️ Please write a comment first.";
+      }
+    }
+
+    const allBooks = ["The Alchemist", "Atomic Habits", "Ikigai", "Deep Work", "Rich Dad Poor Dad"];
+    document.getElementById('bookSearch').addEventListener('input', function() {
+      const q = this.value.toLowerCase();
+      const res = allBooks.filter(b => b.toLowerCase().includes(q));
+      document.getElementById('searchResults').textContent = res.length ? `Results: ${res.join(', ')}` : "";
     });
 
-    // Search filter
-    document.getElementById('bookSearch').addEventListener('input', function(){
-      const filter = this.value.toLowerCase();
-      document.querySelectorAll("#bookTable tbody tr").forEach(row => {
-        row.style.display = row.textContent.toLowerCase().includes(filter) ? "" : "none";
+    const monthLabel = document.getElementById("monthLabel");
+    const calendar = document.getElementById("calendar");
+
+    const months = [
+      "January","February","March","April","May","June",
+      "July","August","September","October","November","December"
+    ];
+
+    let currentMonth = new Date().getMonth();
+    let currentYear = new Date().getFullYear();
+
+    let chart;
+
+    function renderCalendar(month, year) {
+      monthLabel.textContent = `${months[month]} ${year}`;
+      calendar.innerHTML = "";
+
+      const daysOfWeek = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+      daysOfWeek.forEach(d => {
+        const h = document.createElement("div");
+        h.classList.add("header");
+        h.textContent = d;
+        calendar.appendChild(h);
       });
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const day = document.createElement("div");
+        day.classList.add("day");
+        day.textContent = d;
+        day.addEventListener("click", () => updateChart(d));
+        calendar.appendChild(day);
+      }
+
+      renderChart();
+    }
+
+    function renderChart() {
+      const ctx = document.getElementById("readingChart");
+
+      const labels = ["Week 1","Week 2","Week 3","Week 4","Week 5","Week 6","Week 7"];
+      const data = Array.from({ length: 7 }, () => Math.floor(Math.random() * 100) + 10);
+
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: `${months[currentMonth]} Reading Progress`,
+            data,
+            backgroundColor: "#4da3ff",
+            borderRadius: 10
+          }]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true, ticks: { color: "#1f2937" } },
+            x: { ticks: { color: "#1f2937" } }
+          }
+        }
+      });
+    }
+
+    function updateChart(day) {
+      const newData = Array.from({ length: 7 }, () => Math.floor(Math.random() * 120) + 20);
+      chart.data.datasets[0].data = newData;
+      chart.data.datasets[0].label = `${months[currentMonth]} (Day ${day})`;
+      chart.update();
+    }
+
+    document.getElementById("prevMonth").addEventListener("click", () => {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      renderCalendar(currentMonth, currentYear);
     });
+
+    document.getElementById("nextMonth").addEventListener("click", () => {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      renderCalendar(currentMonth, currentYear);
+    });
+
+    renderCalendar(currentMonth, currentYear);
   </script>
 
 </body>
