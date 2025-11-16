@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Library Habit Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <header>
+        <nav class="navbar">
+            <h2>Library Tracker</h2>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/signup-page">Signup</a></li>
+                <li><a href="/login-page">Login</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Track Your Reading Habits Easily</h1>
+        <p>Simple dashboard + book scanning + analytics</p>
+        <a href="/signup-page"><button class="btn">Get Started</button></a>
+    </section>
+
+</body>
+</html>

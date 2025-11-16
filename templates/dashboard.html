@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Library Habit Tracker</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <header>
+        <nav class="navbar">
+            <h2>Dashboard</h2>
+            <ul>
+                <li><a href="/scan-book">Scan Book</a></li>
+                <li><a href="/">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="dashboard-section">
+        <h2>Your Reading Analytics</h2>
+
+        <canvas id="readingChart"></canvas>
+
+        <script>
+            const ctx = document.getElementById('readingChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                    datasets: [{
+                        label: 'Pages Read',
+                        data: [10, 20, 15, 30, 25, 35, 40]
+                    }]
+                }
+            });
+        </script>
+
+    </section>
+
+</body>
+</html>

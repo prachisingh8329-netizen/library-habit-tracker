@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Book | Library Habit Tracker</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+
+<body>
+
+    <header>
+        <nav class="navbar">
+            <h2>Scan Book</h2>
+            <ul>
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <h3 style="text-align:center;">Scan Book ISBN</h3>
+
+    <div id="reader" style="width:300px; margin:auto;"></div>
+
+    <div class="result-box">
+        <h3>Book Details</h3>
+        <p id="book-title">Title: -</p>
+        <p id="book-author">Author: -</p>
+    </div>
+
+<script>
+    function onScanSuccess(code) {
+        fetch(`https://openlibrary.org/isbn/${code}/.json`)
+            .then(res => res.json())
+            .then(book => {
+                document.getElementById("book-title").innerText = "Title: " + (book.title || "N/A");
+                document.getElementById("book-author").innerText = "Author: " + (book.authors ? book.authors[0].key : "Unknown");
+            })
+    }
+
+    const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 });
+    scanner.render(onScanSuccess);
+</script>
+
+</body>
+</html>
