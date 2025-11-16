@@ -1,50 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan Book | Library Habit Tracker</title>
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-
-    <script src="https://unpkg.com/html5-qrcode"></script>
+<meta charset="utf-8">
+<title>Book Scan → Image → Details (Open Library)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- html5-qrcode lib -->
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<style>
+  :root { --bg:#0f172a; --card:#1e293b; --text:#e5e7eb; --accent:#facc15; --muted:#9ca3af; }
+  *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto; }
+  body{margin:0;background:linear-gradient(135deg,#0f172a,#111827);color:var(--text);padding:24px;}
+  h1{margin:0 0 16px;color:var(--accent);text-align:center;font-size:24px}
+  .wrap{max-width:980px;margin:0 auto;display:grid;gap:16px}
+  .card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,0.35)}
+  .row{display:grid;gap:16px}
+  @media(min-width:900px){ .row{grid-template-columns:1fr 1fr} }
+  #reader{width:100%;max-width:420px;height:320px;margin:10px auto;border-radius:12px;overflow:hidden}
+  .cover{width:180px;aspect-ratio:2/3;border-radius:10px;object-fit:cover;background:#0b1020}
+  .muted{color:var(--muted)}
+  .pill{display:inline-block;padding:6px 10px;border-radius:9999px;background:#111827;border:1px solid rgba(255,255,255,0.1);margin:4px 6px 0 0;font-size:12px}
+  button.scan-again{background:linear-gradient(90deg,#7c3aed,#a855f7);border:none;color:white;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+</style>
 </head>
-
 <body>
+  <h1>📚 Scan → See Cover → Read Details</h1>
 
-    <header>
-        <nav class="navbar">
-            <h2>Scan Book</h2>
-            <ul>
-                <li><a href="/dashboard">Dashboard</a></li>
-                <li><a href="/">Logout</a></li>
-            </ul>
-        </nav>
-    </header>
-
-    <h3 style="text-align:center;">Scan Book ISBN</h3>
-
-    <div id="reader" style="width:300px; margin:auto;"></div>
-
-    <div class="result-box">
-        <h3>Book Details</h3>
-        <p id="book-title">Title: -</p>
-        <p id="book-author">Author: -</p>
+  <div class="wrap">
+    <div class="card">
+      <div class="step"><div class="num">1</div><div><b>Scan the book</b> — QR code can contain an <code>ISBN</code> or a <code>Title</code>.</div></div>
+      <div style="margin-top:12px">
+        <div id="reader"></div>
+        <div id="scanStatus" class="muted"></div>
+        <div style="margin-top:10px"><button class="scan-again" id="rescanBtn" style="display:none;">🔄 Scan Another</button></div>
+      </div>
     </div>
 
+    <div class="card">
+      <h3>🖼️ Cover Preview & Details</h3>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start">
+        <img id="cover" class="cover" src="" alt="">
+        <div>
+          <p id="title"><b>Title:</b> <span class="muted">—</span></p>
+          <p id="authors"><b>Authors:</b> <span class="muted">—</span></p>
+          <p id="year"><b>First Published:</b> <span class="muted">—</span></p>
+          <p id="isbn"><b>ISBN:</b> <span class="muted">—</span></p>
+        </div>
+      </div>
+
+      <div style="margin-top:10px">
+        <div id="subjects" class="muted"></div>
+        <div style="margin-top:10px">
+          <p><b>Summary / Description</b></p>
+          <p id="desc" class="muted">Scan a book to load its description…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
 <script>
-    function onScanSuccess(code) {
-        fetch(`https://openlibrary.org/isbn/${code}/.json`)
-            .then(res => res.json())
-            .then(book => {
-                document.getElementById("book-title").innerText = "Title: " + (book.title || "N/A");
-                document.getElementById("book-author").innerText = "Author: " + (book.authors ? book.authors[0].key : "Unknown");
-            })
+  // Full scanner code adapted from your original file
+  function normalizeScan(text) {
+    const raw = (text || "").trim();
+    const cleaned = raw.replace(/isbn[:\s]*/i, "");
+    const digits = cleaned.replace(/[^0-9Xx]/g, "");
+    if (digits.length === 10 || digits.length === 13) return { type: "isbn", value: digits };
+    return { type: "title", value: raw };
+  }
+
+  const el = {
+    status: document.getElementById("scanStatus"),
+    rescan: document.getElementById("rescanBtn"),
+    cover:  document.getElementById("cover"),
+    title:  document.getElementById("title").querySelector("span") || document.getElementById("title").appendChild(document.createElement("span")),
+    authors:document.getElementById("authors").querySelector("span") || document.getElementById("authors").appendChild(document.createElement("span")),
+    year:   document.getElementById("year").querySelector("span") || document.getElementById("year").appendChild(document.createElement("span")),
+    isbn:   document.getElementById("isbn").querySelector("span") || document.getElementById("isbn").appendChild(document.createElement("span")),
+    desc:   document.getElementById("desc"),
+    subjects: document.getElementById("subjects")
+  };
+
+  function setLoading(msg){ el.status.textContent = msg || "Loading…"; }
+  function clearLoading(){ el.status.textContent = ""; }
+  function setMeta({title, authors, year, isbn}) {
+    el.title.textContent = title || "—";
+    el.authors.textContent = (authors && authors.length) ? authors.join(", ") : "—";
+    el.year.textContent = year || "—";
+    el.isbn.textContent = isbn || "—";
+  }
+  function setCoverFromCoverId(coverId){
+    if (coverId) el.cover.src = `https://covers.openlibrary.org/b/id/${coverId}-L.jpg`;
+    else { el.cover.src = ""; el.cover.alt = "No cover"; }
+  }
+  function setSubjects(list){
+    el.subjects.innerHTML = "";
+    if (Array.isArray(list) && list.length) list.slice(0,12).forEach(s => { const sp = document.createElement("span"); sp.className="pill"; sp.textContent=s; el.subjects.appendChild(sp); });
+    else el.subjects.textContent = "—";
+  }
+  function setDescription(desc){
+    if (!desc) { el.desc.textContent = "No description available for this title."; return; }
+    const text = (typeof desc === "string") ? desc : (desc.value || "");
+    el.desc.textContent = text || "No description available for this title.";
+  }
+
+  async function fetchByISBN(isbn){
+    const r = await fetch(`https://openlibrary.org/search.json?isbn=${encodeURIComponent(isbn)}`);
+    const j = await r.json();
+    if (!j.docs || !j.docs.length) return null;
+    return j.docs[0];
+  }
+  async function fetchByTitle(title){
+    const r = await fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(title)}`);
+    const j = await r.json();
+    if (!j.docs || !j.docs.length) return null;
+    return j.docs[0];
+  }
+  async function fetchWorkDescription(workKey){
+    if (!workKey) return null;
+    const r = await fetch(`https://openlibrary.org${workKey}.json`);
+    if (!r.ok) return null;
+    return await r.json();
+  }
+
+  let scanner;
+  function startScanner(){
+    scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+    scanner.render(onScanSuccess, onScanError);
+    el.rescan.style.display = "none";
+    setLoading("Scanner ready. Point at a QR with ISBN or Title.");
+  }
+
+  async function onScanSuccess(decodedText) {
+    try {
+      setLoading("Scanned! Fetching cover & details…");
+      await scanner.clear();
+      el.rescan.style.display = "inline-block";
+
+      const { type, value } = normalizeScan(decodedText);
+      el.desc.textContent = "Loading description…";
+      el.desc.classList.add("muted");
+      el.subjects.textContent = "";
+      setCoverFromCoverId(null);
+      setMeta({title:"—", authors:[], year:"—", isbn:"—"});
+
+      let doc = null;
+      if (type === "isbn") doc = await fetchByISBN(value);
+      else doc = await fetchByTitle(value);
+
+      if (!doc) {
+        clearLoading();
+        setMeta({title: decodedText, authors:[], year:"—", isbn: (type==="isbn"? value : "—")});
+        el.desc.textContent = "No details found on Open Library.";
+        el.cover.src = "";
+        return;
+      }
+
+      const title = doc.title || decodedText;
+      const authors = doc.author_name || [];
+      const year = doc.first_publish_year || "—";
+      const isbn = (type==="isbn") ? value : (doc.isbn && doc.isbn.length ? doc.isbn[0] : "—");
+      setMeta({title, authors, year, isbn});
+      setCoverFromCoverId(doc.cover_i);
+
+      const workKey = doc.key;
+      const work = await fetchWorkDescription(workKey);
+      setDescription(work && work.description);
+      setSubjects(work && (work.subjects || work.subject) );
+      clearLoading();
+    } catch(err) {
+      console.error(err);
+      el.status.textContent = "Error while scanning or fetching data.";
     }
+  }
+  function onScanError(err) { /* ignore quietly */ }
 
-    const scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 200 });
-    scanner.render(onScanSuccess);
+  document.getElementById("rescanBtn").addEventListener("click", ()=> {
+    el.status.textContent = "";
+    el.desc.textContent = "Scan a book to load its description…";
+    el.cover.src = "";
+    setMeta({title:"—", authors:[], year:"—", isbn:"—"});
+    el.subjects.innerHTML = "";
+    startScanner();
+  });
+
+  // place a small invisible reader element to mount scanner if page loads
+  const readerWrapper = document.createElement("div");
+  readerWrapper.id = "reader";
+  document.body.insertBefore(readerWrapper, document.querySelector(".wrap").nextSibling);
+
+  // start scanner
+  startScanner();
 </script>
-
 </body>
 </html>
