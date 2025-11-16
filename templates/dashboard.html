@@ -58,48 +58,14 @@
       margin-top: 5px;
     }
 
-    input::placeholder, textarea::placeholder { color: #333; }
-
-    .month-control {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-
-    .month-control button {
-      background: rgba(255, 255, 255, 0.4);
-      border: none;
-      color: #1e293b;
-      padding: 8px 15px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: 0.3s;
-    }
-
-    .month-control button:hover { background: rgba(255, 255, 255, 0.6); }
-
-    #calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 10px;
-      text-align: center;
+    .book-card {
+      background: rgba(255,255,255,0.5);
+      border-radius: 12px;
+      padding: 15px;
       margin-top: 15px;
-    }
-
-    .day, .header {
-      background: rgba(255, 255, 255, 0.6);
-      border-radius: 10px;
-      padding: 10px 0;
+      display: none;
       color: #1e293b;
-      font-weight: 500;
     }
-
-    .header { font-weight: bold; background: rgba(255, 255, 255, 0.8); }
-    .day:hover { background: rgba(255, 255, 255, 0.9); cursor: pointer; }
-
-    .chart-container { width: 100%; height: 300px; }
 
     .btn {
       background: #4da3ff;
@@ -112,246 +78,212 @@
       transition: 0.3s;
       margin-top: 10px;
     }
-
-    .btn:hover { background: #1e80ff; transform: scale(1.05); }
-
-    .book-card {
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 12px;
-      padding: 15px;
-      margin-top: 15px;
-      color: #1e293b;
-      display: none;
-    }
-
-    .comment-box { margin-top: 20px; }
-
-    .comment-display {
-      margin-top: 15px;
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 10px;
-      padding: 15px;
-      color: #1e293b;
-      border-left: 4px solid #4da3ff;
-    }
   </style>
 </head>
 <body>
 
-  <header>
-    📚 Library Habit Tracker Dashboard  
-    <br>
-    👋 Welcome, <b>{{ user_name }}</b>
-    <br>
-    <a href="/scan-book" style="color:#1e293b; text-decoration:none; font-size:16px;">🔍 Scan Book</a> |
-    <a href="/logout" style="color:#1e293b; text-decoration:none; font-size:16px;">🚪 Logout</a>
-  </header>
+<header>
+  📚 Library Habit Tracker Dashboard  
+  <br> 👋 Welcome, <b>{{ user_name }}</b>
+  <br>
+  <a href="/logout" style="color:#1e293b;font-size:16px;text-decoration:none;">🚪 Logout</a>
+</header>
 
-  <div class="container">
+<div class="container">
 
-    <div class="section">
-      <h2>😊 How are you feeling today?</h2>
-      <select id="moodSelect">
-        <option value="" disabled selected>Select your mood</option>
-        <option>😊 Happy</option>
-        <option>😌 Calm</option>
-        <option>🤩 Motivated</option>
-        <option>😔 Tired</option>
-        <option>😤 Stressed</option>
-        <option>😴 Sleepy</option>
-      </select>
-    </div>
-
-    <div class="section">
-      <h2>🔍 Search a Book</h2>
-      <input type="text" id="bookSearch" placeholder="Type book name to search..." />
-      <div id="searchResults" style="margin-top:10px; color:#1f2937; font-size:14px;"></div>
-    </div>
-
-    <div class="section">
-      <div class="month-control">
-        <button id="prevMonth">◀ Prev</button>
-        <h2 id="monthLabel"></h2>
-        <button id="nextMonth">Next ▶</button>
-      </div>
-      <div id="calendar"></div>
-    </div>
-
-    <div class="section">
-      <h2>📊 Weekly Reading Progress (7 Weeks)</h2>
-      <div class="chart-container">
-        <canvas id="readingChart"></canvas>
-      </div>
-
-      <div class="comment-box">
-        <h2>📘 Enter Book Serial Number</h2>
-        <input type="text" id="bookInput" placeholder="Enter serial number (e.g., 1, 2, 3...)" />
-        <button class="btn" onclick="showBookDetails()">Show Book Details</button>
-
-        <div class="book-card" id="bookCard"></div>
-
-        <h2 style="margin-top:25px;">💬 Add Comment / Reflection</h2>
-        <textarea id="commentInput" placeholder="Write your thoughts about this book..."></textarea>
-        <button class="btn" onclick="saveComment()">Save Comment</button>
-
-        <div class="comment-display" id="commentDisplay"></div>
-      </div>
-    </div>
+  <div class="section">
+    <h2>😊 How are you feeling today?</h2>
+    <select id="moodSelect">
+      <option value="" disabled selected>Select your mood</option>
+      <option>😊 Happy</option>
+      <option>😌 Calm</option>
+      <option>🤩 Motivated</option>
+      <option>😔 Tired</option>
+      <option>😤 Stressed</option>
+      <option>😴 Sleepy</option>
+    </select>
   </div>
 
-<!-- UPDATED SCRIPT STARTS HERE -->
+  <div class="section">
+    <h2>🔍 Search a Book</h2>
+    <input type="text" id="bookSearch" placeholder="Type book name to search..." />
+    <div id="searchResults" style="margin-top:10px;"></div>
+  </div>
+
+  <div class="section">
+    <h2>📘 Enter Book Serial Number</h2>
+    <input type="text" id="bookInput" placeholder="Enter serial number (1-3)" />
+    <button class="btn" onclick="showBookDetails()">Show Book Details</button>
+
+    <div class="book-card" id="bookCard"></div>
+  </div>
+
+  <div class="section">
+    <h2>💬 Add Comment</h2>
+    <textarea id="commentInput" placeholder="Write your thoughts..."></textarea>
+    <button class="btn" onclick="saveComment()">Save Comment</button>
+    <div class="comment-display" id="commentDisplay"></div>
+  </div>
+
+  <div class="section">
+    <div class="month-control">
+      <button id="prevMonth">◀ Prev</button>
+      <h2 id="monthLabel"></h2>
+      <button id="nextMonth">Next ▶</button>
+    </div>
+    <div id="calendar"></div>
+  </div>
+
+  <div class="section">
+    <h2>📊 Weekly Reading Progress</h2>
+    <canvas id="readingChart"></canvas>
+  </div>
+
+</div>
+
 <script>
+window.onload = () => {
+  const msg = new SpeechSynthesisUtterance("Welcome to your dashboard!");
+  window.speechSynthesis.speak(msg);
+};
 
-  window.onload = () => {
-    const msg = new SpeechSynthesisUtterance("Welcome to your dashboard! Keep reading and growing!");
-    window.speechSynthesis.speak(msg);
-  };
+const csBooks = [
+  { id: 1, title: "Introduction to Algorithms (CLRS)", author: "CLRS", summary: "Algorithm bible covers sorting, trees, DP.", url: "dummy" },
+  { id: 2, title: "Computer Networks", author: "Tanenbaum", summary: "Deep explanation of computer networks.", url: "dummy" },
+  { id: 3, title: "Operating System Concepts", author: "Silberschatz", summary: "Covers OS architecture, memory, scheduling.", url: "dummy" },
+  { id: 4, title: "Database System Concepts", author: "Korth", summary: "SQL, ER diagrams, normalization.", url: "dummy" },
+  { id: 5, title: "Let Us C", author: "Yashwant Kanetkar", summary: "The best beginner friendly C book.", url: "dummy" },
+  { id: 6, title: "Python Crash Course", author: "Eric Matthes", summary: "Python automation + projects.", url: "dummy" }
+];
 
-  // ========== COMPUTER SCIENCE BOOK DATABASE ==========
-  const csBooks = [
-    { title: "Introduction to Algorithms (CLRS)", author: "Cormen, Leiserson, Rivest, Stein", summary: "Algorithm bible covering graphs, sorting & DP.", url: "https://ia800503.us.archive.org/28/items/IntroductionToAlgorithmsThirdEdition/Introduction%20to%20Algorithms%20-%20Third%20Edition.pdf" },
-    { title: "Computer Networks", author: "Andrew Tanenbaum", summary: "Deep explanation of networks from scratch.", url: "https://ncert.nic.in/textbook/pdf/lecs1dd.zip" },
-    { title: "Operating System Concepts", author: "Silberschatz", summary: "OS internals, memory, process mgmt, scheduling.", url: "https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/" },
-    { title: "Database System Concepts", author: "Korth", summary: "SQL, transactions, normalization.", url: "https://www.db-book.com/slides-dir/" },
-    { title: "Let Us C", author: "Kanetkar", summary: "The best beginner-friendly C language guide.", url: "https://archive.org/details/letusC" },
-    { title: "Python Crash Course", author: "Eric Matthes", summary: "Hands-on Python automation and projects.", url: "https://ehmatthes.github.io/pcc_2e/" }
-  ];
+document.getElementById("bookSearch").addEventListener("input", function() {
+  const q = this.value.toLowerCase();
+  const output = document.getElementById("searchResults");
+  output.innerHTML = "";
 
-  // ========== SEARCH HANDLER ==========
-  document.getElementById("bookSearch").addEventListener("input", function() {
-    const q = this.value.toLowerCase();
-    const resultsDiv = document.getElementById("searchResults");
-    resultsDiv.innerHTML = "";
+  const filtered = csBooks.filter(b => b.title.toLowerCase().includes(q));
 
-    const filtered = csBooks.filter(b => b.title.toLowerCase().includes(q));
+  filtered.forEach(book => {
+    const div = document.createElement("div");
+    div.style.padding = "10px";
+    div.style.background = "rgba(255,255,255,0.7)";
+    div.style.marginBottom = "8px";
+    div.style.borderRadius = "10px";
+    div.style.cursor = "pointer";
+    div.innerHTML = `<b>${book.title}</b><br><small>${book.author}</small>`;
 
-    filtered.forEach(book => {
-      const item = document.createElement("div");
-      item.style.padding = "10px";
-      item.style.background = "rgba(255,255,255,0.8)";
-      item.style.marginBottom = "8px";
-      item.style.borderRadius = "10px";
-      item.style.cursor = "pointer";
-      item.innerHTML = `<b>${book.title}</b><br><small>${book.author}</small>`;
-      item.onclick = () => showCSBookDetails(book);
-      resultsDiv.appendChild(item);
-    });
+    div.onclick = () => showCSBookDetails(book);
+
+    output.appendChild(div);
+  });
+});
+
+function showCSBookDetails(book) {
+  const card = document.getElementById("bookCard");
+  card.innerHTML = `
+    <strong>Title:</strong> ${book.title}<br>
+    <strong>Author:</strong> ${book.author}<br>
+    <strong>Summary:</strong> ${book.summary}<br><br>
+    <a href="/read-book/${book.id}" style="font-weight:bold;color:#1e293b;">📖 Read Book</a>
+  `;
+  card.style.display = "block";
+}
+
+const books = {
+  1: { title: "The Alchemist", summary: "Dreams + destiny.", reflection: "Follow your heart." },
+  2: { title: "Atomic Habits", summary: "Small habits → big success.", reflection: "Improve 1% daily." },
+  3: { title: "Ikigai", summary: "Purpose + meaning.", reflection: "Find your joy." }
+};
+
+function showBookDetails() {
+  const num = document.getElementById("bookInput").value.trim();
+  const c = document.getElementById("bookCard");
+
+  if (books[num]) {
+    const b = books[num];
+    c.innerHTML = `
+      <strong>Title:</strong> ${b.title}<br>
+      <strong>Summary:</strong> ${b.summary}<br>
+      <strong>Reflection:</strong> ${b.reflection}
+    `;
+  } else {
+    c.innerHTML = "❌ Invalid serial number";
+  }
+  c.style.display = "block";
+}
+
+function saveComment() {
+  const text = document.getElementById("commentInput").value.trim();
+  document.getElementById("commentDisplay").innerHTML = text ? `💬 ${text}` : "⚠ Write something first!";
+}
+
+const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+let currentMonth = new Date().getMonth();
+let currentYear = new Date().getFullYear();
+let chart;
+
+function renderCalendar() {
+  document.getElementById("monthLabel").textContent = `${months[currentMonth]} ${currentYear}`;
+  const cal = document.getElementById("calendar");
+  cal.innerHTML = "";
+
+  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+  const days = new Date(currentYear, currentMonth+1, 0).getDate();
+
+  const weekdays = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  weekdays.forEach(d => {
+    const h = document.createElement("div");
+    h.className = "header";
+    h.textContent = d;
+    cal.appendChild(h);
   });
 
-  function showCSBookDetails(book) {
-    const card = document.getElementById("bookCard");
-    card.innerHTML = `
-      <strong>Title:</strong> ${book.title}<br>
-      <strong>Author:</strong> ${book.author}<br>
-      <strong>Summary:</strong> ${book.summary}<br>
-      <a href="${book.url}" target="_blank" style="color:#1e293b; font-weight:bold;">📖 Read Book</a>
-    `;
-    card.style.display = "block";
-    card.scrollIntoView({ behavior: "smooth" });
+  for (let i=0;i<firstDay;i++) cal.appendChild(document.createElement("div"));
+  for (let d=1; d<=days; d++){
+    const box = document.createElement("div");
+    box.className = "day";
+    box.textContent = d;
+    box.onclick = () => updateChart(d);
+    cal.appendChild(box);
   }
 
-  // ========== SERIAL NUMBER BOOKS ==========
-  const books = {
-    1: { title: "The Alchemist", summary: "A journey of faith & dreams.", reflection: "Believe in your path." },
-    2: { title: "Atomic Habits", summary: "Small habits → big results.", reflection: "1% improvements daily." },
-    3: { title: "Ikigai", summary: "Find purpose & joy.", reflection: "Live with meaning." }
-  };
+  renderChart();
+}
 
-  function showBookDetails() {
-    const num = document.getElementById("bookInput").value.trim();
-    const card = document.getElementById("bookCard");
-    if (books[num]) {
-      const b = books[num];
-      card.innerHTML = `
-        <strong>Title:</strong> ${b.title}<br>
-        <strong>Summary:</strong> ${b.summary}<br>
-        <strong>Reflection:</strong> ${b.reflection}
-      `;
-    } else {
-      card.innerHTML = "❌ No book found with that serial.";
+function renderChart() {
+  const ctx = document.getElementById("readingChart");
+  const labels = ["Week1","Week2","Week3","Week4","Week5","Week6","Week7"];
+  const data = Array.from({length:7},()=>Math.floor(Math.random()*100)+20);
+
+  if (chart) chart.destroy();
+  chart = new Chart(ctx,{
+    type:"bar",
+    data:{
+      labels,
+      datasets:[{label:`${months[currentMonth]} Progress`, data, backgroundColor:"#4da3ff"}]
     }
-    card.style.display = "block";
-  }
+  });
+}
 
-  // ========== COMMENT ========== 
-  function saveComment() {
-    const text = document.getElementById("commentInput").value.trim();
-    document.getElementById("commentDisplay").innerHTML = text ? `💬 ${text}` : "⚠ Write something!";
-  }
+function updateChart(day){
+  const newData = Array.from({length:7},()=>Math.floor(Math.random()*100)+10);
+  chart.data.datasets[0].data = newData;
+  chart.data.datasets[0].label = `${months[currentMonth]} (Day ${day})`;
+  chart.update();
+}
 
-  // ========== CALENDAR + GRAPH ==========
-  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-  let currentMonth = new Date().getMonth();
-  let currentYear = new Date().getFullYear();
-  let chart;
+document.getElementById("prevMonth").onclick = () => {
+  currentMonth--; if (currentMonth < 0) { currentMonth=11; currentYear--; }
+  renderCalendar();
+};
 
-  function renderCalendar(month, year) {
-    document.getElementById("monthLabel").textContent = `${months[month]} ${year}`;
-    const calendar = document.getElementById("calendar");
-    calendar.innerHTML = "";
+document.getElementById("nextMonth").onclick = () => {
+  currentMonth++; if (currentMonth > 11) { currentMonth=0; currentYear++; }
+  renderCalendar();
+};
 
-    const firstDay = new Date(year, month, 1).getDay();
-    const days = new Date(year, month + 1, 0).numberOfDays = new Date(year, month + 1, 0).getDate();
-
-    const weekNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-    weekNames.forEach(d => {
-      const h = document.createElement("div");
-      h.className = "header";
-      h.textContent = d;
-      calendar.appendChild(h);
-    });
-
-    for (let i = 0; i < firstDay; i++) {
-      const empty = document.createElement("div");
-      calendar.appendChild(empty);
-    }
-
-    for (let d = 1; d <= days; d++) {
-      const dayBox = document.createElement("div");
-      dayBox.className = "day";
-      dayBox.textContent = d;
-      dayBox.onclick = () => updateChart(d);
-      calendar.appendChild(dayBox);
-    }
-
-    renderChart();
-  }
-
-  function renderChart() {
-    const ctx = document.getElementById("readingChart");
-    const labels = ["Week 1","Week 2","Week 3","Week 4","Week 5","Week 6","Week 7"];
-    const data = Array.from({length:7},()=>Math.floor(Math.random()*100)+20);
-    if (chart) chart.destroy();
-    chart = new Chart(ctx,{
-      type:"bar",
-      data:{
-        labels,
-        datasets:[{ label:`${months[currentMonth]} Progress`, data, backgroundColor:"#4da3ff", borderRadius:10 }]
-      }
-    });
-  }
-
-  function updateChart(day){
-    const newData = Array.from({length:7},()=>Math.floor(Math.random()*120)+10);
-    chart.data.datasets[0].data = newData;
-    chart.data.datasets[0].label = `${months[currentMonth]} (Day ${day})`;
-    chart.update();
-  }
-
-  document.getElementById("prevMonth").onclick = () => {
-    currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-    renderCalendar(currentMonth,currentYear);
-  };
-
-  document.getElementById("nextMonth").onclick = () => {
-    currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-    renderCalendar(currentMonth,currentYear);
-  };
-
-  renderCalendar(currentMonth,currentYear);
-
+renderCalendar();
 </script>
-<!-- UPDATED SCRIPT ENDS HERE -->
 
 </body>
 </html>
