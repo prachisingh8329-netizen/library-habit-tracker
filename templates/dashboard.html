@@ -124,9 +124,7 @@
       display: none;
     }
 
-    .comment-box {
-      margin-top: 20px;
-    }
+    .comment-box { margin-top: 20px; }
 
     .comment-display {
       margin-top: 15px;
@@ -151,7 +149,6 @@
 
   <div class="container">
 
-    <!-- Mood Section -->
     <div class="section">
       <h2>😊 How are you feeling today?</h2>
       <select id="moodSelect">
@@ -165,14 +162,12 @@
       </select>
     </div>
 
-    <!-- Search Book -->
     <div class="section">
       <h2>🔍 Search a Book</h2>
       <input type="text" id="bookSearch" placeholder="Type book name to search..." />
       <div id="searchResults" style="margin-top:10px; color:#1f2937; font-size:14px;"></div>
     </div>
 
-    <!-- Calendar -->
     <div class="section">
       <div class="month-control">
         <button id="prevMonth">◀ Prev</button>
@@ -182,14 +177,12 @@
       <div id="calendar"></div>
     </div>
 
-    <!-- Graph -->
     <div class="section">
       <h2>📊 Weekly Reading Progress (7 Weeks)</h2>
       <div class="chart-container">
         <canvas id="readingChart"></canvas>
       </div>
 
-      <!-- Serial Number + Comment Section -->
       <div class="comment-box">
         <h2>📘 Enter Book Serial Number</h2>
         <input type="text" id="bookInput" placeholder="Enter serial number (e.g., 1, 2, 3...)" />
@@ -206,164 +199,159 @@
     </div>
   </div>
 
-  <script>
-    const voices = [
-      "Keep going, you're doing great!",
-      "Every page you read is progress!",
-      "Stay curious, the world is full of stories!",
-      "You're growing with every book you read!",
-      "Books are your superpower — keep going!"
-    ];
-    function speakRandomMessage() {
-      const msg = new SpeechSynthesisUtterance();
-      msg.text = voices[Math.floor(Math.random() * voices.length)];
-      msg.lang = "en-US";
-      msg.rate = 1;
-      msg.pitch = 1;
-      window.speechSynthesis.speak(msg);
-    }
-    window.onload = speakRandomMessage;
+<!-- UPDATED SCRIPT STARTS HERE -->
+<script>
 
-    // Book database
-    const books = {
-      1: { title: "The Alchemist", summary: "A young shepherd follows his dream to find treasure.", reflection: "Believe in your journey." },
-      2: { title: "Atomic Habits", summary: "Small habits create life-changing results.", reflection: "Tiny steps matter." },
-      3: { title: "Ikigai", summary: "Finding joy and purpose in everyday life.", reflection: "Purpose makes life peaceful." },
-      4: { title: "Deep Work", summary: "Focus deeply to master productivity.", reflection: "Discipline creates excellence." }
-    };
+  window.onload = () => {
+    const msg = new SpeechSynthesisUtterance("Welcome to your dashboard! Keep reading and growing!");
+    window.speechSynthesis.speak(msg);
+  };
 
-    function showBookDetails() {
-      const num = document.getElementById("bookInput").value.trim();
-      const card = document.getElementById("bookCard");
+  // ========== COMPUTER SCIENCE BOOK DATABASE ==========
+  const csBooks = [
+    { title: "Introduction to Algorithms (CLRS)", author: "Cormen, Leiserson, Rivest, Stein", summary: "Algorithm bible covering graphs, sorting & DP.", url: "https://ia800503.us.archive.org/28/items/IntroductionToAlgorithmsThirdEdition/Introduction%20to%20Algorithms%20-%20Third%20Edition.pdf" },
+    { title: "Computer Networks", author: "Andrew Tanenbaum", summary: "Deep explanation of networks from scratch.", url: "https://ncert.nic.in/textbook/pdf/lecs1dd.zip" },
+    { title: "Operating System Concepts", author: "Silberschatz", summary: "OS internals, memory, process mgmt, scheduling.", url: "https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/" },
+    { title: "Database System Concepts", author: "Korth", summary: "SQL, transactions, normalization.", url: "https://www.db-book.com/slides-dir/" },
+    { title: "Let Us C", author: "Kanetkar", summary: "The best beginner-friendly C language guide.", url: "https://archive.org/details/letusC" },
+    { title: "Python Crash Course", author: "Eric Matthes", summary: "Hands-on Python automation and projects.", url: "https://ehmatthes.github.io/pcc_2e/" }
+  ];
 
-      if (books[num]) {
-        const b = books[num];
-        card.innerHTML = `
-          <strong>Title:</strong> ${b.title}<br>
-          <strong>Summary:</strong> ${b.summary}<br>
-          <strong>Reflection:</strong> ${b.reflection}
-        `;
-        card.style.display = "block";
-      } else {
-        card.innerHTML = "⚠️ No book found with that serial number.";
-        card.style.display = "block";
-      }
-    }
+  // ========== SEARCH HANDLER ==========
+  document.getElementById("bookSearch").addEventListener("input", function() {
+    const q = this.value.toLowerCase();
+    const resultsDiv = document.getElementById("searchResults");
+    resultsDiv.innerHTML = "";
 
-    function saveComment() {
-      const text = document.getElementById("commentInput").value.trim();
-      const display = document.getElementById("commentDisplay");
-      if (text) {
-        display.innerHTML = "💬 " + text;
-        document.getElementById("commentInput").value = "";
-      } else {
-        display.innerHTML = "⚠️ Please write a comment first.";
-      }
-    }
+    const filtered = csBooks.filter(b => b.title.toLowerCase().includes(q));
 
-    const allBooks = ["The Alchemist", "Atomic Habits", "Ikigai", "Deep Work", "Rich Dad Poor Dad"];
-    document.getElementById('bookSearch').addEventListener('input', function() {
-      const q = this.value.toLowerCase();
-      const res = allBooks.filter(b => b.toLowerCase().includes(q));
-      document.getElementById('searchResults').textContent = res.length ? `Results: ${res.join(', ')}` : "";
+    filtered.forEach(book => {
+      const item = document.createElement("div");
+      item.style.padding = "10px";
+      item.style.background = "rgba(255,255,255,0.8)";
+      item.style.marginBottom = "8px";
+      item.style.borderRadius = "10px";
+      item.style.cursor = "pointer";
+      item.innerHTML = `<b>${book.title}</b><br><small>${book.author}</small>`;
+      item.onclick = () => showCSBookDetails(book);
+      resultsDiv.appendChild(item);
     });
+  });
 
-    const monthLabel = document.getElementById("monthLabel");
+  function showCSBookDetails(book) {
+    const card = document.getElementById("bookCard");
+    card.innerHTML = `
+      <strong>Title:</strong> ${book.title}<br>
+      <strong>Author:</strong> ${book.author}<br>
+      <strong>Summary:</strong> ${book.summary}<br>
+      <a href="${book.url}" target="_blank" style="color:#1e293b; font-weight:bold;">📖 Read Book</a>
+    `;
+    card.style.display = "block";
+    card.scrollIntoView({ behavior: "smooth" });
+  }
+
+  // ========== SERIAL NUMBER BOOKS ==========
+  const books = {
+    1: { title: "The Alchemist", summary: "A journey of faith & dreams.", reflection: "Believe in your path." },
+    2: { title: "Atomic Habits", summary: "Small habits → big results.", reflection: "1% improvements daily." },
+    3: { title: "Ikigai", summary: "Find purpose & joy.", reflection: "Live with meaning." }
+  };
+
+  function showBookDetails() {
+    const num = document.getElementById("bookInput").value.trim();
+    const card = document.getElementById("bookCard");
+    if (books[num]) {
+      const b = books[num];
+      card.innerHTML = `
+        <strong>Title:</strong> ${b.title}<br>
+        <strong>Summary:</strong> ${b.summary}<br>
+        <strong>Reflection:</strong> ${b.reflection}
+      `;
+    } else {
+      card.innerHTML = "❌ No book found with that serial.";
+    }
+    card.style.display = "block";
+  }
+
+  // ========== COMMENT ========== 
+  function saveComment() {
+    const text = document.getElementById("commentInput").value.trim();
+    document.getElementById("commentDisplay").innerHTML = text ? `💬 ${text}` : "⚠ Write something!";
+  }
+
+  // ========== CALENDAR + GRAPH ==========
+  const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  let currentMonth = new Date().getMonth();
+  let currentYear = new Date().getFullYear();
+  let chart;
+
+  function renderCalendar(month, year) {
+    document.getElementById("monthLabel").textContent = `${months[month]} ${year}`;
     const calendar = document.getElementById("calendar");
+    calendar.innerHTML = "";
 
-    const months = [
-      "January","February","March","April","May","June",
-      "July","August","September","October","November","December"
-    ];
+    const firstDay = new Date(year, month, 1).getDay();
+    const days = new Date(year, month + 1, 0).numberOfDays = new Date(year, month + 1, 0).getDate();
 
-    let currentMonth = new Date().getMonth();
-    let currentYear = new Date().getFullYear();
-
-    let chart;
-
-    function renderCalendar(month, year) {
-      monthLabel.textContent = `${months[month]} ${year}`;
-      calendar.innerHTML = "";
-
-      const daysOfWeek = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-      daysOfWeek.forEach(d => {
-        const h = document.createElement("div");
-        h.classList.add("header");
-        h.textContent = d;
-        calendar.appendChild(h);
-      });
-
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-      for (let i = 0; i < firstDay; i++) calendar.appendChild(document.createElement("div"));
-
-      for (let d = 1; d <= daysInMonth; d++) {
-        const day = document.createElement("div");
-        day.classList.add("day");
-        day.textContent = d;
-        day.addEventListener("click", () => updateChart(d));
-        calendar.appendChild(day);
-      }
-
-      renderChart();
-    }
-
-    function renderChart() {
-      const ctx = document.getElementById("readingChart");
-
-      const labels = ["Week 1","Week 2","Week 3","Week 4","Week 5","Week 6","Week 7"];
-      const data = Array.from({ length: 7 }, () => Math.floor(Math.random() * 100) + 10);
-
-      if (chart) chart.destroy();
-
-      chart = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [{
-            label: `${months[currentMonth]} Reading Progress`,
-            data,
-            backgroundColor: "#4da3ff",
-            borderRadius: 10
-          }]
-        },
-        options: {
-          scales: {
-            y: { beginAtZero: true, ticks: { color: "#1f2937" } },
-            x: { ticks: { color: "#1f2937" } }
-          }
-        }
-      });
-    }
-
-    function updateChart(day) {
-      const newData = Array.from({ length: 7 }, () => Math.floor(Math.random() * 120) + 20);
-      chart.data.datasets[0].data = newData;
-      chart.data.datasets[0].label = `${months[currentMonth]} (Day ${day})`;
-      chart.update();
-    }
-
-    document.getElementById("prevMonth").addEventListener("click", () => {
-      currentMonth--;
-      if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-      }
-      renderCalendar(currentMonth, currentYear);
+    const weekNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    weekNames.forEach(d => {
+      const h = document.createElement("div");
+      h.className = "header";
+      h.textContent = d;
+      calendar.appendChild(h);
     });
 
-    document.getElementById("nextMonth").addEventListener("click", () => {
-      currentMonth++;
-      if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-      }
-      renderCalendar(currentMonth, currentYear);
-    });
+    for (let i = 0; i < firstDay; i++) {
+      const empty = document.createElement("div");
+      calendar.appendChild(empty);
+    }
 
-    renderCalendar(currentMonth, currentYear);
-  </script>
+    for (let d = 1; d <= days; d++) {
+      const dayBox = document.createElement("div");
+      dayBox.className = "day";
+      dayBox.textContent = d;
+      dayBox.onclick = () => updateChart(d);
+      calendar.appendChild(dayBox);
+    }
+
+    renderChart();
+  }
+
+  function renderChart() {
+    const ctx = document.getElementById("readingChart");
+    const labels = ["Week 1","Week 2","Week 3","Week 4","Week 5","Week 6","Week 7"];
+    const data = Array.from({length:7},()=>Math.floor(Math.random()*100)+20);
+    if (chart) chart.destroy();
+    chart = new Chart(ctx,{
+      type:"bar",
+      data:{
+        labels,
+        datasets:[{ label:`${months[currentMonth]} Progress`, data, backgroundColor:"#4da3ff", borderRadius:10 }]
+      }
+    });
+  }
+
+  function updateChart(day){
+    const newData = Array.from({length:7},()=>Math.floor(Math.random()*120)+10);
+    chart.data.datasets[0].data = newData;
+    chart.data.datasets[0].label = `${months[currentMonth]} (Day ${day})`;
+    chart.update();
+  }
+
+  document.getElementById("prevMonth").onclick = () => {
+    currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+    renderCalendar(currentMonth,currentYear);
+  };
+
+  document.getElementById("nextMonth").onclick = () => {
+    currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    renderCalendar(currentMonth,currentYear);
+  };
+
+  renderCalendar(currentMonth,currentYear);
+
+</script>
+<!-- UPDATED SCRIPT ENDS HERE -->
 
 </body>
 </html>
