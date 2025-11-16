@@ -1,29 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Library Habit Tracker</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Library Habit Tracker</title>
+<style>
+/* (same CSS as your original index; keep it as inline for exact look) */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+  }
+  body {
+    background: linear-gradient(rgba(20, 20, 20, 0.85), rgba(20, 20, 20, 0.85)),
+                url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1920&q=80')
+                no-repeat center center/cover;
+    color: #f1f5f9;
+    overflow-x: hidden;
+  }
+  header {
+    width: 100%;
+    text-align: center;
+    padding: 25px 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+  }
+  header h1 {
+    color: #facc15;
+    font-size: 26px;
+    letter-spacing: 1px;
+  }
+  .content {
+    text-align: center;
+    padding: 160px 20px 80px;
+    margin: 0 auto;
+    width: 90%;
+    max-width: 1100px;
+  }
+  .content h2 {
+    font-size: 46px;
+    color: #facc15;
+    margin-bottom: 15px;
+  }
+  .content p {
+    font-size: 18px;
+    line-height: 1.7;
+    color: #e2e8f0;
+    margin-bottom: 25px;
+  }
+  .highlight {
+    color: #22c55e;
+    font-weight: 700;
+  }
+  button {
+    padding: 14px 26px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    background: linear-gradient(90deg, #9333ea, #a855f7);
+    color: white;
+    font-weight: 600;
+    transition: 0.3s;
+  }
+  button:hover {
+    background: linear-gradient(90deg, #a855f7, #c084fc);
+    transform: translateY(-3px);
+  }
+  .habit-section { margin: 40px auto; width: 90%; max-width: 1000px; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 40px; box-shadow: 0 6px 25px rgba(0,0,0,0.6); }
+  .stats { margin: 60px auto; display: flex; justify-content: center; flex-wrap: wrap; gap: 30px; max-width: 1000px; }
+  .stat-card { background: rgba(255,255,255,0.08); border-radius: 15px; padding: 25px; width: 200px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+  .smart { margin-top: 70px; text-align: center; }
+  footer { text-align: center; padding: 20px; color: #e2e8f0; background: rgba(0, 0, 0, 0.8); margin-top: 60px; border-top: 1px solid rgba(255,255,255,0.1); }
+</style>
 </head>
 <body>
 
-    <header>
-        <nav class="navbar">
-            <h2>Library Tracker</h2>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/signup-page">Signup</a></li>
-                <li><a href="/login-page">Login</a></li>
-            </ul>
-        </nav>
-    </header>
+  <header>
+    <h1>📚 Library Habit Tracker</h1>
+  </header>
 
-    <section class="hero">
-        <h1>Track Your Reading Habits Easily</h1>
-        <p>Simple dashboard + book scanning + analytics</p>
-        <a href="/signup-page"><button class="btn">Get Started</button></a>
-    </section>
+  <div class="content">
+    <h2>Make 2025 Your Most Successful Year Ever!</h2>
+    <p>Discover <span class="highlight">Library Habit Tracker</span> – your personal digital space to build focus, track reading, and manage lifelong learning habits.</p>
+
+    <!-- changed local file link to Flask route /signup -->
+    <a href="/signup"><button>Get started</button></a>
+  </div>
+
+  <!-- stats, smart features, comments — kept same as original -->
+  <div class="habit-section">
+    <h3>Learning Habit Building & Management</h3>
+    <p>Build strong reading habits by organizing your daily goals and tracking your progress. Stay motivated with personalized challenges, reminders, and an overview of your learning journey.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><h3>2,500+</h3><p>Books Tracked</p></div>
+    <div class="stat-card"><h3>5,000+</h3><p>Active Readers</p></div>
+    <div class="stat-card"><h3>98%</h3><p>Goal Completion Rate</p></div>
+  </div>
+
+  <div class="smart">
+    <h2>Why Users Choose Library Habit Tracker</h2>
+    <div class="smart-list">
+      <div class="smart-item"><h4>📆 Smart Reminders</h4><p>Stay on track with personalized alerts.</p></div>
+      <div class="smart-item"><h4>🎯 Challenges</h4><p>Join fun reading challenges and earn badges.</p></div>
+      <div class="smart-item"><h4>📈 Progress Insights</h4><p>Visualize your growth and celebrate success.</p></div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2025 Library Habit Tracker | Designed by Prachi Singh</p>
+  </footer>
 
 </body>
 </html>
