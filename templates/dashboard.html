@@ -25,7 +25,6 @@
       background:var(--bg1);
       min-height:100vh;
       color:#0f172a;
-      -webkit-font-smoothing:antialiased;
     }
 
     .wrap{
@@ -54,7 +53,6 @@
       max-width:160px !important;
       max-height:160px !important;
       margin:auto;
-      display:block;
     }
 
     .right-top{
@@ -64,7 +62,6 @@
       margin-bottom:18px;
     }
 
-    /* Search box small */
     #searchInput{
       padding:8px 12px;
       border-radius:8px;
@@ -116,7 +113,6 @@
       border-radius:3px;
     }
 
-    /* Page Prediction */
     .predictor input{
       padding:8px;
       border-radius:8px;
@@ -128,10 +124,11 @@
 
 <body>
 <div class="wrap">
+
   <!-- LEFT COLUMN -->
   <div class="left-col">
 
-    <!-- Mood Pie -->
+    <!-- Mood Pie Chart -->
     <div class="card">
       <h3>Mood Distribution (Past Week)</h3>
       <canvas id="moodPie"></canvas>
@@ -150,7 +147,7 @@
       </div>
     </div>
 
-    <!-- Heatmap Small -->
+    <!-- Small Heatmap -->
     <div class="card">
       <h3>Reading Streak Heatmap (Small View)</h3>
 
@@ -168,7 +165,6 @@
   <!-- RIGHT COLUMN -->
   <div style="display:flex;flex-direction:column;gap:18px">
 
-    <!-- SEARCH + QR -->
     <div class="right-top">
 
       <!-- SEARCH BOX -->
@@ -180,7 +176,7 @@
         <div id="searchResults" class="search-list"></div>
       </div>
 
-      <!-- QR SCANNER -->
+      <!-- QR SCANNER + UPLOAD -->
       <div class="card">
         <h3>Scan Book (QR / ISBN)</h3>
 
@@ -199,13 +195,10 @@
       </div>
 
     </div>
-    <!-- END RIGHT-TOP -->
-
 
     <!-- HEATMAP + PAGE PREDICTION -->
     <div style="display:grid;grid-template-columns:1fr 360px;gap:18px">
 
-      <!-- BIG HEATMAP -->
       <div class="card">
         <h3>Yearly Reading Heatmap</h3>
         <div id="bigHeatmap"></div>
@@ -240,80 +233,248 @@
 
   </div>
   <!-- END RIGHT COLUMN -->
-</div>
-<!-- ===================================================== -->
-<!-- =============== JAVASCRIPT SECTION =================== -->
-<!-- ===================================================== -->
 
+</div> <!-- end wrap -->
+
+<!-- JAVASCRIPT START -->
 <script>
-/* --------------------- MOOD PIE CHART ---------------------- */
+
+/* ------------------- MOOD PIE CHART ------------------- */
 const moodCtx = document.getElementById('moodPie').getContext('2d');
 
 let moodData = {
-  labels: ['Happy','Calm','Motivated','Tired','Stressed','Sleepy'],
-  datasets:[{
-    data: [12, 8, 20, 5, 3, 2],
-    backgroundColor: ['#facc15','#60a5fa','#34d399','#f97316','#fb7185','#94a3b8']
+  labels: ["Happy", "Calm", "Motivated", "Tired", "Stressed", "Sleepy"],
+  datasets: [{
+    data: [10, 7, 15, 4, 3, 2],
+    backgroundColor: ["#fde047", "#60a5fa", "#34d399", "#fdba74", "#fb7185", "#94a3b8"]
   }]
 };
 
 const moodPie = new Chart(moodCtx, {
-  type: 'doughnut',
+  type: "doughnut",
   data: moodData,
   options: {
-    plugins:{ legend:{ position:'bottom' } }
+    plugins: { legend: { position: "bottom" } },
+    onClick: (evt, elements) => {
+      if (elements.length > 0) {
+        let index = elements[0].index;
+        let mood = moodData.labels[index];
+        setMood(mood);
+      }
+    }
   }
 });
 
-function setMood(mood){
+function setMood(mood) {
   document.getElementById("curMood").textContent = mood;
-
-  let index = moodData.labels.findIndex(l => mood.includes(l));
-  if(index >= 0){
-    moodData.datasets[0].data[index] += 1;
-    moodPie.update();
-  }
+  let index = moodData.labels.indexOf(mood);
+  moodData.datasets[0].data[index] += 1;
+  moodPie.update();
 }
 
 
-/* --------------------- BOOK DATA ---------------------- */
+/* ------------------- CS BOOK SEARCH ------------------- */
 const csBooks = [
-  { id:1, title:"Introduction to Algorithms (CLRS)", author:"Cormen", pages:1312 },
-  { id:2, title:"Operating System Concepts", author:"Silberschatz", pages:976 },
-  { id:3, title:"Computer Networks", author:"Tanenbaum", pages:880 },
-  { id:4, title:"Database System Concepts", author:"Korth", pages:1184 },
-  { id:5, title:"Let Us C", author:"Yashwant Kanetkar", pages:700 },
-  { id:6, title:"Python Crash Course", author:"Eric Matthes", pages:544 }
+  { id: 1, title: "Introduction to Algorithms (CLRS)", author: "Cormen", pages: 1312 },
+  { id: 2, title: "Operating System Concepts", author: "Silberschatz", pages: 976 },
+  { id: 3, title: "Computer Networks", author: "Tanenbaum", pages: 880 },
+  { id: 4, title: "Database System Concepts", author: "Korth", pages: 1184 },
+  { id: 5, title: "Let Us C", author: "Yashwant Kanetkar", pages: 700 },
+  { id: 6, title: "Python Crash Course", author: "Eric Matthes", pages: 544 }
 ];
 
-
-/* ---------------------- SEARCH ------------------------ */
-const searchInput = document.getElementById("searchInput");
-const searchResults = document.getElementById("searchResults");
-
-searchInput.addEventListener("input", () => {
+document.getElementById("searchInput").addEventListener("input", () => {
   const q = searchInput.value.toLowerCase();
   searchResults.innerHTML = "";
 
-  if(!q.trim()) return;
+  if (!q) return;
 
-  let results = csBooks.filter(b => 
-    b.title.toLowerCase().includes(q) || 
-    b.author.toLowerCase().includes(q)
-  );
+  const filtered = csBooks.filter(b => b.title.toLowerCase().includes(q));
 
-  results.forEach(book => {
-    const div = document.createElement("div");
+  filtered.forEach(book => {
+    let div = document.createElement("div");
     div.className = "result-item";
-    div.innerHTML = `<b>${book.title}</b><br><small>${book.author}</small>`;
+    div.innerHTML = `<strong>${book.title}</strong><br><small>${book.author} – ${book.pages} pages</small>`;
     div.onclick = () => openBookInternal(book);
     searchResults.appendChild(div);
   });
 });
 
 
-/* ---------------------- BOOK DETAILS + CHAPTERS ------------------------ */
-function openBookInternal(book){
+/* ------------------- BOOK DETAILS + CHAPTERS ------------------- */
+function openBookInternal(book) {
   searchResults.innerHTML = `
-    <div style="padding:14px;background:white;border-radius:12px;">
-      <h2>${bo
+    <div style="padding:16px;background:white;border-radius:12px;">
+      <h2>${book.title}</h2>
+      <p><b>Author:</b> ${book.author}</p>
+      <p><b>Pages:</b> ${book.pages}</p>
+
+      <h3>📘 Chapters</h3>
+      <ol>
+        <li>Introduction</li>
+        <li>Main Concepts</li>
+        <li>Advanced Topics</li>
+        <li>Case Studies</li>
+        <li>Exercises</li>
+      </ol>
+
+      <button class="btn" onclick="window.location.href='/read-book/${book.id}'">
+        📖 Read Book
+      </button>
+    </div>
+  `;
+}
+
+
+/* ------------------- QR SCANNER ------------------- */
+let scanner = null;
+
+function startScanner() {
+  if (scanner) {
+    scanner.render(onScanSuccess, onScanError);
+    return;
+  }
+
+  scanner = new Html5Qrcode("reader");
+
+  Html5Qrcode.getCameras()
+    .then(cameras => {
+      const camId = cameras[0].id;
+      scanner.start(camId, { fps: 10, qrbox: 200 }, onScanSuccess, onScanError);
+    })
+    .catch(err => {
+      document.getElementById("scanDetails").innerText = "Camera not found";
+    });
+}
+
+function stopScanner() {
+  if (!scanner) return;
+  scanner.stop().then(() => scanner.clear()).catch(()=>{});
+}
+
+function onScanSuccess(decodedText) {
+  stopScanner();
+  document.getElementById("scanDetails").innerText = "Scanned: " + decodedText;
+  autoMatchBook(decodedText);
+}
+
+function onScanError(err) {}
+
+
+/* -------- Upload from Gallery (QR Image Scan) -------- */
+function scanFromFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const qr = new Html5Qrcode("reader");
+
+  qr.scanFile(file, true)
+    .then(decodedText => {
+      document.getElementById("scanDetails").innerText = "Scanned: " + decodedText;
+      autoMatchBook(decodedText);
+    })
+    .catch(err => {
+      document.getElementById("scanDetails").innerText = "Invalid QR image!";
+    });
+}
+
+function autoMatchBook(text) {
+  const t = text.toLowerCase();
+  const book = csBooks.find(b => b.title.toLowerCase().includes(t) || (""+b.id)==t);
+
+  if (book) openBookInternal(book);
+  else document.getElementById("scanDetails").innerHTML += "<br>Not found.";
+}
+
+
+/* ------------------- HEATMAP (Small + Big) ------------------- */
+function generateHeatData() {
+  return Array.from({length:365}, () => Math.floor(Math.random() * 100));
+}
+const heatData = generateHeatData();
+
+function heatColor(min) {
+  if (min === 0) return "#e5e7eb";
+  if (min < 20) return "#bfdbfe";
+  if (min < 40) return "#93c5fd";
+  if (min < 60) return "#60a5fa";
+  return "#1d4ed8";
+}
+
+function renderHeatmapSmall() {
+  const box = document.getElementById("heatmap");
+  box.innerHTML = "";
+
+  for (let w=0; w<53; w++) {
+    let col = document.createElement("div");
+    col.style.display = "flex";
+    col.style.flexDirection = "column";
+    col.style.gap = "4px";
+
+    for (let d=0; d<7; d++) {
+      let index = w*7 + d;
+      if (index >= 365) break;
+
+      let cell = document.createElement("div");
+      cell.className = "heat-cell";
+      cell.style.background = heatColor(heatData[index]);
+      cell.title = `${heatData[index]} minutes`;
+
+      col.appendChild(cell);
+    }
+
+    box.appendChild(col);
+  }
+}
+
+function renderHeatmapBig() {
+  const big = document.getElementById("bigHeatmap");
+  big.innerHTML = "";
+
+  let grid = document.createElement("div");
+  grid.className = "heat-grid";
+
+  heatData.forEach(min => {
+    let cell = document.createElement("div");
+    cell.className = "heat-cell";
+    cell.style.background = heatColor(min);
+    grid.appendChild(cell);
+  });
+
+  big.appendChild(grid);
+}
+
+renderHeatmapSmall();
+renderHeatmapBig();
+
+
+/* ------------------- PAGE-TIME PREDICTION ------------------- */
+function predictFinish() {
+  let pagesToday = +document.getElementById("pagesToday").value;
+  let totalPages = +document.getElementById("totalPages").value;
+  let speed = +document.getElementById("speed").value;
+
+  const last7 = heatData.slice(358);
+  const avgMin = last7.reduce((a,b)=>a+b,0) / 7;
+  const pagesPerDay = avgMin * speed;
+
+  const blended = (pagesPerDay + pagesToday) / 2;
+
+  let remaining = totalPages - pagesToday;
+  let days = Math.ceil(remaining / blended);
+
+  if (days < 1) days = 1;
+
+  document.getElementById("predictionText").innerText =
+    `At your current speed, you'll finish this book in ${days} day${days>1?'s':''}.`;
+
+  document.getElementById("predictionDetails").innerText =
+    `Estimated ${pagesPerDay.toFixed(1)} pages/day based on recent activity.`;
+}
+
+</script>
+
+</body>
+</html>
+
+     
