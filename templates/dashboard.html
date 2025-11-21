@@ -1,331 +1,406 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Library Habit Tracker | Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Library Habit Tracker — Advanced Dashboard</title>
+
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- html5-qrcode -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-    * { box-sizing: border-box; font-family: "Poppins", sans-serif; }
-
-    body {
-      margin: 0;
-      color: #1e293b;
-      min-height: 100vh;
-      background: linear-gradient(120deg, #d5dee7, #ffafbd, #ffc3a0, #a1c4fd);
-      background-size: 400% 400%;
-      animation: gradientShift 12s ease infinite;
+    :root{
+      --bg1: linear-gradient(120deg,#d5dee7,#ffafbd,#ffc3a0,#a1c4fd);
+      --card: rgba(255,255,255,0.85);
+      --muted:#374151;
+      --accent:#4da3ff;
+      --radius:14px;
+    }
+    *{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,'Poppins',sans-serif}
+    body{
+      margin:0;
+      background:var(--bg1);
+      min-height:100vh;
+      color:#0f172a;
+      -webkit-font-smoothing:antialiased;
     }
 
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    .wrap{
+      max-width:1200px;margin:28px auto;padding:18px;
+      display:grid;grid-template-columns: 320px 1fr;gap:20px;
     }
 
-    header {
-      padding: 20px;
-      text-align: center;
-      font-size: 26px;
-      font-weight: bold;
-      background: rgba(255, 255, 255, 0.3);
-      backdrop-filter: blur(8px);
-      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    /* Left column (mood pie + heatmap small view) */
+    .left-col {
+      display:flex;flex-direction:column;gap:18px;
+    }
+    .card{
+      background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.08);
+    }
+    .card h3{margin:0 0 12px;font-size:18px;color:var(--muted)}
+    .mini { display:flex;gap:12px;align-items:center; }
+
+    /* Right area top: search + scanner */
+    .right-top { display:grid; grid-template-columns: 1fr 420px; gap:18px; margin-bottom:18px; }
+    .search-list { max-height:320px; overflow:auto; padding:8px; border-radius:10px; background:rgba(0,0,0,0.02); }
+    .result-item{ padding:10px;border-radius:8px;margin-bottom:8px;background:white;cursor:pointer; box-shadow:0 4px 12px rgba(2,6,23,0.04); }
+    .result-item small{color: #6b7280}
+
+    /* QR area */
+    #reader { width:100%; height:320px; border-radius:10px; overflow:hidden; background:#000; display:flex;align-items:center;justify-content:center;color:white;font-weight:600 }
+
+    /* Heatmap (big) */
+    .heat-row { display:flex; gap:6px; align-items:center; margin-top:10px; }
+    .heat-grid {
+      display:grid;
+      grid-template-columns: repeat(53, 12px);
+      gap:4px;
+      align-items:center;
+    }
+    .heat-cell {
+      width:12px;height:12px;border-radius:3px;background:#f3f4f6;border:1px solid rgba(0,0,0,0.04);
     }
 
-    a { color:#1e293b; text-decoration:none; font-weight:bold; }
+    /* page-time panel */
+    .predictor { display:flex; flex-direction:column; gap:8px; }
+    .predictor input { padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.08) }
+    .predictor .big { font-size:20px;font-weight:700;color:var(--muted) }
 
-    .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
-
-    .section {
-      background: rgba(255, 255, 255, 0.3);
-      border-radius: 20px;
-      padding: 20px;
-      margin-bottom: 30px;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    h2 { margin-bottom: 15px; font-weight: 600; }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 12px;
-      border-radius: 12px;
-      border: none;
-      background: rgba(255,255,255,0.5);
-      margin-top: 5px;
-      font-size: 15px;
-    }
-
-    .btn {
-      background: #4da3ff;
-      border: none;
-      padding: 10px 20px;
-      color: #fff;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-top: 10px;
-    }
-
-    .btn:hover {
-      background: #1e80ff;
-    }
-
-    /* ---------------- CALENDAR FIX ---------------- */
-
-    #calendar {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 10px;
-      margin-top: 15px;
-      text-align: center;
-    }
-
-    .header {
-      background: rgba(255,255,255,0.85);
-      padding: 10px;
-      font-weight: 700;
-      border-radius: 10px;
-      color: #1e293b;
-    }
-
-    .day {
-      background: rgba(255,255,255,0.7);
-      padding: 12px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: 0.3s;
-      font-weight: 500;
-    }
-
-    .day:hover {
-      background: rgba(255,255,255,0.95);
-      transform: scale(1.05);
-    }
-
-    /* ------------------------------------------------ */
-
-    .book-card {
-      background: rgba(255,255,255,0.5);
-      padding: 15px;
-      border-radius: 12px;
-      margin-top: 15px;
-      display: none;
+    /* Responsive */
+    @media (max-width: 980px){
+      .wrap{ grid-template-columns: 1fr; padding:12px;}
+      .right-top { grid-template-columns: 1fr; }
+      .heat-grid { grid-template-columns: repeat(18, 12px); }
     }
   </style>
 </head>
 <body>
 
-<header>
-  📚 Library Habit Tracker Dashboard  
-  <br> 👋 Welcome, <b>{{ user_name }}</b>
-  <br>
-  <a href="/logout">🚪 Logout</a>
-</header>
+<div class="wrap">
 
-<div class="container">
+  <!-- LEFT column -->
+  <div class="left-col">
 
-  <div class="section">
-    <h2>😊 How are you feeling today?</h2>
-    <select id="moodSelect">
-      <option disabled selected>Select your mood</option>
-      <option>😊 Happy</option>
-      <option>😌 Calm</option>
-      <option>🤩 Motivated</option>
-      <option>😔 Tired</option>
-      <option>😤 Stressed</option>
-      <option>😴 Sleepy</option>
-    </select>
-  </div>
-
-  <div class="section">
-    <h2>🔍 Search a Computer Science Book</h2>
-    <input type="text" id="bookSearch" placeholder="Type book name..." />
-    <div id="searchResults" style="margin-top:15px;"></div>
-  </div>
-
-  <div class="section">
-    <h2>📘 Get Book By Serial Number</h2>
-    <input type="text" id="bookInput" placeholder="1 - 3" />
-    <button class="btn" onclick="showBookDetails()">Show Book</button>
-    <div class="book-card" id="bookCard"></div>
-  </div>
-
-  <div class="section">
-    <h2>💬 Add Comment</h2>
-    <textarea id="commentInput" placeholder="Write something..."></textarea>
-    <button class="btn" onclick="saveComment()">Save Comment</button>
-    <div class="comment-display" id="commentDisplay"></div>
-  </div>
-
-  <div class="section">
-    <div class="month-control" style="display:flex;justify-content:space-between;">
-      <button id="prevMonth">◀ Prev</button>
-      <h2 id="monthLabel"></h2>
-      <button id="nextMonth">Next ▶</button>
+    <!-- Mood Pie -->
+    <div class="card">
+      <h3>Mood Distribution (Past week)</h3>
+      <div style="display:flex;gap:12px;align-items:center">
+        <canvas id="moodPie" width="200" height="200"></canvas>
+        <div style="flex:1">
+          <div style="margin-bottom:6px"><strong>Current mood:</strong> <span id="curMood">🤩 Motivated</span></div>
+          <div style="margin-bottom:6px">Tap a mood slice to set as today.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="setMood('😊 Happy')">😊 Happy</button>
+            <button onclick="setMood('😌 Calm')">😌 Calm</button>
+            <button onclick="setMood('🤩 Motivated')">🤩 Motivated</button>
+            <button onclick="setMood('😔 Tired')">😔 Tired</button>
+            <button onclick="setMood('😤 Stressed')">😤 Stressed</button>
+            <button onclick="setMood('😴 Sleepy')">😴 Sleepy</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="calendar"></div>
+
+    <!-- Heatmap -->
+    <div class="card">
+      <h3>Reading Streak Heatmap (Year)</h3>
+      <div style="display:flex;gap:12px">
+        <div>
+          <div style="font-size:12px;color:#6b7280;margin-bottom:8px">Darker = more minutes read</div>
+          <div id="heatLegend" style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">
+            <div style="width:12px;height:12px;background:#f3f4f6;border-radius:3px"></div><small style="color:#6b7280">0</small>
+            <div style="width:12px;height:12px;background:#dbeafe;border-radius:3px"></div><small style="color:#6b7280">10</small>
+            <div style="width:12px;height:12px;background:#93c5fd;border-radius:3px"></div><small style="color:#6b7280">30</small>
+            <div style="width:12px;height:12px;background:#1e90ff;border-radius:3px"></div><small style="color:#6b7280">60+</small>
+          </div>
+          <div id="heatmap" style="width: 100%; overflow:auto; padding-bottom:6px;">
+            <!-- heat grid inserted by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <div class="section">
-    <h2>📊 Weekly Reading Progress</h2>
-    <canvas id="readingChart"></canvas>
-  </div>
+  <!-- RIGHT column -->
+  <div style="display:flex;flex-direction:column;gap:18px">
 
+    <!-- Top: search list + QR scanner -->
+    <div class="right-top">
+
+      <!-- search & results -->
+      <div class="card">
+        <h3>Search Computer Science Books</h3>
+        <input id="searchInput" placeholder="Type 'algorithm', 'python', 'os'..." style="padding:10px;border-radius:8px;border:1px solid #e6e6e6;width:100%;margin-bottom:8px" />
+        <div class="search-list" id="searchResults"></div>
+      </div>
+
+      <!-- QR scanner + details -->
+      <div class="card">
+        <h3>Scan Book (QR / ISBN)</h3>
+        <div id="reader">Camera off — click Start Scan</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn" onclick="startScanner()">Start Scan</button>
+          <button class="btn" onclick="stopScanner()" style="background:#ef4444">Stop</button>
+        </div>
+
+        <div id="scanDetails" style="margin-top:12px;color:var(--muted)"></div>
+      </div>
+
+    </div>
+
+    <!-- Next row: Page-time predictor & big heatmap -->
+    <div style="display:grid;grid-template-columns:1fr 360px;gap:18px">
+
+      <!-- wide: (reusing heatmap larger view) -->
+      <div class="card">
+        <h3>Yearly Reading Heatmap</h3>
+        <div id="bigHeatmap" style="overflow:auto"></div>
+      </div>
+
+      <!-- side predictor -->
+      <div class="card predictor">
+        <h3>Page-Time Prediction</h3>
+        <div>
+          <label>Pages read today</label>
+          <input id="pagesToday" type="number" min="0" value="30" />
+        </div>
+        <div>
+          <label>Total pages of book</label>
+          <input id="totalPages" type="number" min="1" value="300" />
+        </div>
+        <div>
+          <label>Reading speed (pages / minute)</label>
+          <input id="speed" type="number" min="0.01" step="0.01" value="0.5" />
+        </div>
+
+        <div style="margin-top:8px">
+          <button class="btn" onclick="predictFinish()">Predict finish time</button>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="big" id="predictionText" style="font-size:16px"></div>
+          <div style="margin-top:8px;color:#6b7280;font-size:13px" id="predictionDetails"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
 </div>
 
-
 <script>
-/* ---------------- SEARCH DATABASE ---------------- */
+/* ----------------- Mood Pie (Chart.js) ----------------- */
+const moodCtx = document.getElementById('moodPie').getContext('2d');
+let moodData = {
+  labels: ['Happy','Calm','Motivated','Tired','Stressed','Sleepy'],
+  datasets:[{ data: [12,8,20,5,3,2], backgroundColor: ['#facc15','#60a5fa','#34d399','#f97316','#fb7185','#94a3b8'] }]
+};
+const moodPie = new Chart(moodCtx, {
+  type: 'doughnut',
+  data: moodData,
+  options: {
+    plugins:{legend:{position:'bottom'}},
+    onClick: (evt, elements) => {
+      if (elements.length) {
+        const idx = elements[0].index;
+        const label = moodData.labels[idx];
+        setMood(label);
+      }
+    }
+  }
+});
+function setMood(label){
+  document.getElementById('curMood').textContent = label;
+  // bump one value slightly for demo + update chart
+  const idx = moodData.labels.indexOf(label);
+  if (idx>=0) moodData.datasets[0].data[idx] += 1;
+  moodPie.update();
+}
 
+/* -------------- Computer Science Search DB -------------- */
 const csBooks = [
-  { id: 1, title: "Introduction to Algorithms (CLRS)", author: "CLRS", summary: "Full algorithm bible" },
-  { id: 2, title: "Computer Networks", author: "Tanenbaum", summary: "Network architecture explained" },
-  { id: 3, title: "Operating System Concepts", author: "Silberschatz", summary: "OS memory, scheduling, processes" },
-  { id: 4, title: "Database System Concepts", author: "Korth", summary: "SQL, DBMS, transactions" },
-  { id: 5, title: "Let Us C", author: "Kanetkar", summary: "Beginner-friendly C book" },
-  { id: 6, title: "Python Crash Course", author: "Eric Matthes", summary: "Python projects & automation" }
+  { id:1, title:"Introduction to Algorithms (CLRS)", author:"Cormen et al.", pages:1312 },
+  { id:2, title:"Operating System Concepts", author:"Silberschatz", pages:976 },
+  { id:3, title:"Computer Networks", author:"Tanenbaum", pages:880 },
+  { id:4, title:"Database System Concepts", author:"Korth", pages:1184 },
+  { id:5, title:"Data Structures & Algorithms in Java", author:"Lafore", pages:720 },
+  { id:6, title:"Let Us C", author:"Y. Kanetkar", pages:700 },
+  { id:7, title:"Python Crash Course", author:"E. Matthes", pages:544 }
 ];
 
-/* ---------------- SEARCH FUNCTION ---------------- */
-
-document.getElementById("bookSearch").addEventListener("input", function() {
-  const q = this.value.toLowerCase();
-  const output = document.getElementById("searchResults");
-  output.innerHTML = "";
-
-  const filtered = csBooks.filter(b => b.title.toLowerCase().includes(q));
-
-  filtered.forEach(book => {
-    const div = document.createElement("div");
-    div.style.padding = "12px";
-    div.style.background = "rgba(255,255,255,0.8)";
-    div.style.marginBottom = "10px";
-    div.style.borderRadius = "10px";
-    div.style.cursor = "pointer";
-    div.innerHTML = `<b>${book.title}</b><br><small>${book.author}</small>`;
-    div.onclick = () => showCSBookDetails(book);
-    output.appendChild(div);
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  searchResults.innerHTML = '';
+  if (!q) return;
+  const filtered = csBooks.filter(b => b.title.toLowerCase().includes(q) || (b.author && b.author.toLowerCase().includes(q)));
+  filtered.forEach(b => {
+    const div = document.createElement('div');
+    div.className = 'result-item';
+    div.innerHTML = `<strong>${b.title}</strong><br><small>${b.author} • ${b.pages} pages</small>`;
+    div.onclick = () => openBookInternal(b);
+    searchResults.appendChild(div);
   });
 });
 
-/* ---------------- BOOK DETAILS ---------------- */
-
-function showCSBookDetails(book) {
-  const card = document.getElementById("bookCard");
-  card.innerHTML = `
-    <strong>Title:</strong> ${book.title}<br>
-    <strong>Author:</strong> ${book.author}<br>
-    <strong>Summary:</strong> ${book.summary}<br><br>
-    <a href="/read-book/${book.id}">📖 Read Book</a>
-  `;
-  card.style.display = "block";
+function openBookInternal(book){
+  // open internal read page route
+  // if you use Flask route /read-book/<id>, it will open there
+  window.location.href = `/read-book/${book.id}`;
 }
 
-/* ---------------- SERIAL NUMBER BOOKS ---------------- */
-
-const books = {
-  1: { title: "The Alchemist", summary: "Dreams and purpose", reflection: "Follow your path" },
-  2: { title: "Atomic Habits", summary: "Habits → success", reflection: "Small gains daily" },
-  3: { title: "Ikigai", summary: "Purpose of life", reflection: "Live calm & focused" }
-};
-
-function showBookDetails() {
-  const num = document.getElementById("bookInput").value.trim();
-  const card = document.getElementById("bookCard");
-
-  if (books[num]) {
-    const b = books[num];
-    card.innerHTML = `
-      <strong>Title:</strong> ${b.title}<br>
-      <strong>Summary:</strong> ${b.summary}<br>
-      <strong>Reflection:</strong> ${b.reflection}
-    `;
+/* ----------------- QR Scanner ----------------- */
+let scanner = null;
+function startScanner(){
+  if (scanner) { scanner.render(onScanSuccess, onScanError); return; }
+  scanner = new Html5Qrcode("reader");
+  Html5Qrcode.getCameras().then(devices => {
+    const cameraId = devices && devices.length ? devices[0].id : null;
+    scanner.start(cameraId, { fps:10, qrbox:250 }, onScanSuccess, onScanError)
+      .catch(err => { document.getElementById('scanDetails').innerText = 'Camera error: ' + err; });
+  }).catch(err => {
+    document.getElementById('scanDetails').innerText = 'No camera: ' + err;
+  });
+}
+function stopScanner(){
+  if (!scanner) return;
+  scanner.stop().then(() => scanner.clear()).catch(()=>{});
+}
+async function onScanSuccess(decodedText, decodedResult){
+  // For demo we try treat text as isbn or title
+  stopScanner();
+  document.getElementById('scanDetails').innerText = 'Scanned: ' + decodedText;
+  // Try to find a matching CS book by id/title
+  const t = decodedText.toLowerCase();
+  const found = csBooks.find(b => b.title.toLowerCase().includes(t) || (''+b.id)===t );
+  if (found) {
+    setTimeout(()=> openBookInternal(found), 600);
   } else {
-    card.innerHTML = "❌ Invalid serial number";
+    // show as searched item
+    const div = document.createElement('div');
+    div.className = 'result-item';
+    div.innerHTML = `<strong>${decodedText}</strong><br><small>Scanned text — try search</small>`;
+    searchResults.prepend(div);
   }
-  card.style.display = "block";
 }
+function onScanError(err){ /* ignore quietly */ }
 
-/* ---------------- COMMENTS ---------------- */
-
-function saveComment() {
-  const text = document.getElementById("commentInput").value.trim();
-  document.getElementById("commentDisplay").innerHTML = text ? `💬 ${text}` : "⚠ Write something!";
+/* --------------- Heatmap generation (demo data) --------------- */
+/* We will create a 365-cell grid arranged in 53 columns (weeks) like GitHub */
+function makeHeatData(){
+  // Generate demo minutes read per day (0..120)
+  const days = 365;
+  const arr = new Array(days).fill(0).map(()=> Math.floor(Math.random()*100)); // minutes
+  return arr;
 }
+const heatData = makeHeatData();
 
-/* ---------------- CALENDAR + CHART ---------------- */
-
-const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-let currentMonth = new Date().getMonth();
-let currentYear = new Date().getFullYear();
-let chart;
-
-function renderCalendar() {
-  document.getElementById("monthLabel").textContent = `${months[currentMonth]} ${currentYear}`;
-  const cal = document.getElementById("calendar");
-  cal.innerHTML = "";
-
-  const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-  const days = new Date(currentYear, currentMonth+1, 0).getDate();
-
-  const weekNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  weekNames.forEach(day => {
-    const h = document.createElement("div");
-    h.className = "header";
-    h.textContent = day;
-    cal.appendChild(h);
-  });
-
-  for (let i=0;i<firstDay;i++) cal.appendChild(document.createElement("div"));
-
-  for (let d=1; d<=days; d++){
-    const box = document.createElement("div");
-    box.className = "day";
-    box.textContent = d;
-    box.onclick = () => updateChart(d);
-    cal.appendChild(box);
-  }
-
-  renderChart();
-}
-
-function renderChart() {
-  const ctx = document.getElementById("readingChart");
-  const labels = ["Week1","Week2","Week3","Week4","Week5","Week6","Week7"];
-  const data = Array.from({length:7},()=>Math.floor(Math.random()*100)+20);
-
-  if (chart) chart.destroy();
-  chart = new Chart(ctx,{
-    type:"bar",
-    data:{
-      labels,
-      datasets:[{ label:`${months[currentMonth]} Progress`, data, backgroundColor:"#4da3ff" }]
+// small heatmap (compact)
+function renderHeatmapSmall(){
+  const container = document.getElementById('heatmap');
+  container.innerHTML = '';
+  // show weeks horizontally — we will show as columns of 7 vertical cells simplified
+  const cols = 53;
+  const weeks = [];
+  for (let w=0; w<cols; w++){
+    const col = document.createElement('div');
+    col.style.display='flex';col.style.flexDirection='column';col.style.gap='4px';
+    // pick 7 days for this column
+    for (let d=0; d<7; d++){
+      const idx = w*7 + d;
+      const cell = document.createElement('div');
+      const minutes = heatData[idx] || 0;
+      cell.className='heat-cell';
+      cell.style.background = heatColor(minutes);
+      cell.title = `Day ${idx+1}: ${minutes} min`;
+      col.appendChild(cell);
     }
-  });
+    container.appendChild(col);
+  }
 }
 
-function updateChart(day){
-  const newData = Array.from({length:7},()=>Math.floor(Math.random()*100)+10);
-  chart.data.datasets[0].data = newData;
-  chart.data.datasets[0].label = `${months[currentMonth]} (Day ${day})`;
-  chart.update();
+// Big heatmap, grid of 52-53 columns by 7 rows
+function renderHeatmapBig(){
+  const cont = document.getElementById('bigHeatmap');
+  cont.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'heat-grid';
+  // create 365 cells
+  for (let i=0;i<365;i++){
+    const cell = document.createElement('div');
+    cell.className = 'heat-cell';
+    const val = heatData[i] || 0;
+    cell.style.background = heatColor(val);
+    cell.title = `Day ${i+1}: ${val} minutes`;
+    grid.appendChild(cell);
+  }
+  cont.appendChild(grid);
+}
+function heatColor(minutes){
+  if (minutes <= 0) return '#f3f4f6';
+  if (minutes < 10) return '#dbeafe';
+  if (minutes < 30) return '#93c5fd';
+  if (minutes < 60) return '#60a5fa';
+  return '#1e3a8a';
 }
 
-document.getElementById("prevMonth").onclick = () => {
-  currentMonth--; if (currentMonth < 0) { currentMonth = 11; currentYear--; }
-  renderCalendar();
-};
+/* ----------------- Page-Time Prediction ----------------- */
+function predictFinish(){
+  const pagesToday = Number(document.getElementById('pagesToday').value) || 0;
+  const totalPages = Number(document.getElementById('totalPages').value) || 0;
+  const speed = Number(document.getElementById('speed').value) || 0.5; // pages per minute
 
-document.getElementById("nextMonth").onclick = () => {
-  currentMonth++; if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-  renderCalendar();
-};
+  // derive average daily reading minutes from heatData last 7 days:
+  const last7 = heatData.slice(Math.max(0, heatData.length - 7));
+  const avgMinutes = last7.reduce((s,a)=>s+a,0) / (last7.length || 1);
+  const predictedPagesPerDay = avgMinutes * speed;
 
-renderCalendar();
+  // if user provided pagesToday, we can blend: we compute a new avg = (predictedPagesPerDay + pagesToday)/2
+  const blended = (predictedPagesPerDay + (pagesToday || predictedPagesPerDay)) / 2;
+
+  const remaining = Math.max(0, totalPages - pagesToday);
+  let days = Infinity;
+  if (blended > 0) days = Math.ceil(remaining / blended);
+  const textEl = document.getElementById('predictionText');
+  const details = document.getElementById('predictionDetails');
+
+  if (!totalPages || totalPages <= pagesToday) {
+    textEl.textContent = "You're done or invalid total pages.";
+    details.textContent = "";
+    return;
+  }
+  if (!isFinite(days)) {
+    textEl.textContent = "Can't predict (no reading speed data).";
+    details.textContent = "Try entering pages read today or adjust reading speed.";
+    return;
+  }
+
+  textEl.textContent = `At your current speed, you'll finish this book in ${days} day${days>1?'s':''}.`;
+  details.textContent = `Based on avg ${Math.round(predictedPagesPerDay*10)/10} pages/day (from recent activity) and today's ${pagesToday} pages.`;
+}
+
+/* --------------- Init render --------------- */
+renderHeatmapSmall();
+renderHeatmapBig();
+
+/* Chart: optionally animate based on mood data updated above */
+renderChart();
+
+/* helper: renderChart definition moved below to keep code readable */
+function renderChart(){
+  // update moodPie already created earlier; re-draw label counts demo handled
+  // nothing else needed here
+}
+
+/* Expose some functions for console testing */
+window.predictFinish = predictFinish;
+window.startScanner = startScanner;
+window.stopScanner = stopScanner;
+window.openBookInternal = openBookInternal;
 </script>
 
 </body>
