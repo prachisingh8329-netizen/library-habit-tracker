@@ -12,342 +12,311 @@
 
   <style>
     :root {
-      --bg: #f6f9fc;
       --card: #ffffff;
       --muted: #475569;
       --accent: #2563eb;
-      --success: #10b981;
       --radius: 12px;
       --shadow: 0 8px 24px rgba(15,23,42,0.06);
     }
     *{box-sizing:border-box;font-family:Inter,system-ui,'Poppins',sans-serif}
-    body{margin:0;background:var(--bg);color:#0f172a;padding:20px;}
+    body{
+      margin:0;
+      background-image:url('https://i.postimg.cc/L6tcvZtZ/library-blur.jpg');
+      background-size:cover;
+      background-position:center;
+      background-attachment:fixed;
+      padding:20px;
+      color:#0f172a;
+    }
     .container{max-width:900px;margin:0 auto;}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;background:rgba(255,255,255,0.8);padding:14px;border-radius:12px;backdrop-filter:blur(6px);}
     h1{font-size:20px;margin:0}
-    .card{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+    .card{
+      background:rgba(255,255,255,0.86);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
+      margin-bottom:14px;
+      backdrop-filter:blur(4px);
+    }
     label{display:block;margin-bottom:6px;color:var(--muted);font-size:14px}
-    select,input[type="text"],input[type="number"],textarea{
-      width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef6;font-size:14px;margin-bottom:8px;
-      background: #fff;
+    select,input[type="text"],input[type="number"]{
+      width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;margin-bottom:8px;background:rgba(255,255,255,0.8);
     }
     .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
     .btn-ghost{background:transparent;color:var(--accent);border:1px solid #dbeafe;padding:8px 10px;border-radius:8px;cursor:pointer}
     .small{font-size:13px;padding:6px 10px}
     .row{display:flex;gap:10px}
-    .center{display:flex;align-items:center;gap:10px}
-    /* Search result */
     .result{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;border:1px solid #f1f5f9;background:#fcfdff;margin-bottom:8px}
     .meta{color:var(--muted);font-size:13px}
-    /* heatmap grid */
-    .heat-grid { display:grid; grid-template-columns: repeat(53, 9px); gap:4px; padding:6px; overflow:auto; background:transparent }
+    .heat-grid { display:grid; grid-template-columns: repeat(53, 9px); gap:4px; padding:6px; background:transparent }
     .heat-cell{width:9px;height:9px;border-radius:2px;background:#eef2ff;border:1px solid rgba(15,23,42,0.03)}
-    /* chart area */
-    .chart-wrap{height:220px}
-    /* rewards */
-    .badges{display:flex;gap:8px;flex-wrap:wrap}
-    .badge{background:#f8fafc;padding:8px;border-radius:8px;border:1px solid #e6eef6;font-size:13px}
-    /* timer */
-    .timer { display:flex; gap:8px; align-items:center; margin-top:8px }
-    @media (max-width:640px){ .row{flex-direction:column} .heat-grid{grid-template-columns:repeat(18,9px)} }
+    @media (max-width:640px){ .row{flex-direction:column} .heat-grid{grid-template-columns:repeat(20,9px)} }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>📚 Library Habit Tracker</h1>
-      <div style="color:var(--muted)">Welcome — your reading dashboard</div>
-    </header>
 
-    <!-- 1) Current Feeling -->
-    <div class="card" id="feelingCard">
-      <label for="feeling">How are you feeling today?</label>
-      <select id="feeling">
-        <option value="">Select feeling</option>
-        <option>😊 Happy</option>
-        <option>😌 Calm</option>
-        <option>🤩 Motivated</option>
-        <option>😔 Tired</option>
-        <option>😤 Stressed</option>
-        <option>😴 Sleepy</option>
-      </select>
-      <div style="font-size:13px;color:var(--muted)">Selected: <strong id="feelingNow">—</strong></div>
-    </div>
+<div class="container">
 
-    <!-- 2) Book Search -->
-    <div class="card" id="searchCard">
-      <label for="searchBox">Search Computer Science Books</label>
-      <div class="row">
-        <input id="searchBox" type="text" placeholder="e.g. algorithms, operating system, networks" />
-        <button class="btn small" onclick="doSearch()">Search</button>
-        <button class="btn-ghost small" onclick="clearSearch()">Clear</button>
-      </div>
-      <div id="searchResults" style="margin-top:10px"></div>
-    </div>
+  <header>
+    <h1>📚 Library Habit Tracker</h1>
+    <div style="color:var(--muted)">Welcome back, Reader!</div>
+  </header>
 
-    <!-- 3) QR Scanner + Upload -->
-    <div class="card" id="qrCard">
-      <label>QR / ISBN Scanner <small style="color:var(--muted)">(camera or upload image)</small></label>
-      <div class="row">
-        <button class="btn small" onclick="startScanner()">Start Camera Scan</button>
-        <button class="btn-ghost small" onclick="stopScanner()">Stop</button>
-        <label class="btn-ghost small" style="cursor:pointer">
-          Upload QR
-          <input id="qrFile" type="file" accept="image/*" style="display:none" onchange="scanFromFile(event)">
-        </label>
-      </div>
-      <div id="reader" style="margin-top:10px;border-radius:8px;overflow:hidden;background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:180px">Camera ready</div>
-      <div id="scanInfo" style="margin-top:8px;color:var(--muted)"></div>
-    </div>
-
-    <!-- 4) Reading Streak -->
-    <div class="card" id="streakCard">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <label>Reading Streak</label>
-          <div style="font-size:20px;font-weight:700" id="streakCount">0 days</div>
-          <div class="meta" id="totalMins">0 minutes total</div>
-        </div>
-        <div style="text-align:right">
-          <div class="meta">Goal</div>
-          <div style="font-weight:700">30 min / day</div>
-        </div>
-      </div>
-      <div style="margin-top:10px">
-        <button class="btn small" onclick="logTodayMinutesPrompt()">Log minutes read today</button>
-        <button class="btn-ghost small" onclick="resetHeat()">Reset demo data</button>
-      </div>
-    </div>
-
-    <!-- 5) Yearly Heatmap -->
-    <div class="card" id="heatCard">
-      <label>Reading Heatmap (Year)</label>
-      <div class="heat-grid" id="heatGrid" style="margin-top:8px"></div>
-    </div>
-
-    <!-- 6) Daily Growth Graph (month nav) -->
-    <div class="card" id="growthCard">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <label>Daily Growth</label>
-        <div class="row" style="align-items:center">
-          <button class="btn-ghost small" onclick="prevMonth()">◀ Prev</button>
-          <div id="monthLabel" style="min-width:110px;text-align:center;font-weight:700"></div>
-          <button class="btn-ghost small" onclick="nextMonth()">Next ▶</button>
-        </div>
-      </div>
-      <div class="chart-wrap"><canvas id="growthChart"></canvas></div>
-    </div>
-
-    <!-- 7) Rewards & Weekly Challenge -->
-    <div class="card" id="rewardsCard">
-      <label>Rewards & Weekly Challenges</label>
-      <div class="badges" style="margin-top:10px">
-        <div class="badge">🔥 7-day streak</div>
-        <div class="badge">📘 Read 3 chapters</div>
-        <div class="badge">⏱ 150 minutes this week</div>
-      </div>
-      <div style="margin-top:10px;font-size:13px;color:var(--muted)">Complete weekly challenges to unlock badges and rewards.</div>
-    </div>
-
-    <!-- 8) AI Summary & Read Aloud Timer -->
-    <div class="card" id="toolsCard">
-      <label>AI Summary Generator</label>
-      <div class="row">
-        <input id="summaryBookId" type="number" placeholder="Enter book id (e.g. 1)" />
-        <button class="btn small" onclick="generateSummary()">Generate Summary</button>
-      </div>
-      <div id="summaryResult" style="margin-top:8px;color:var(--muted)"></div>
-
-      <hr style="margin:12px 0">
-
-      <label>Read-Aloud / Focus Timer</label>
-      <div class="center timer">
-        <div id="timerDisplay" style="font-weight:700">00:00:00</div>
-        <button class="btn small" onclick="startTimer()">Start</button>
-        <button class="btn-ghost small" onclick="pauseTimer()">Pause</button>
-        <button class="btn-ghost small" onclick="stopTimer()">Stop</button>
-      </div>
-      <div style="font-size:13px;color:var(--muted);margin-top:8px">Timer logs minutes to your heatmap (demo).</div>
-    </div>
-
+  <!-- FEELING -->
+  <div class="card">
+    <label>How are you feeling today?</label>
+    <select id="feeling">
+      <option>Select feeling</option>
+      <option>😊 Happy</option>
+      <option>😌 Calm</option>
+      <option>🤩 Motivated</option>
+      <option>😔 Tired</option>
+      <option>😤 Stressed</option>
+      <option>😴 Sleepy</option>
+    </select>
+    <div style="font-size:13px;color:var(--muted)">Selected: <b id="feelingNow">—</b></div>
   </div>
 
-  <script>
-    /* ----------------- Demo data & helpers ----------------- */
-    // heatData: 365 days minutes
-    let heatData = Array.from({length:365}, ()=> Math.floor(Math.random()*40));
-    let streak = 0;
-    let totalMinutes = heatData.reduce((a,b)=>a+b,0);
-    let currentMonthIndex = new Date().getMonth();
-    const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  <!-- SEARCH -->
+  <div class="card">
+    <label>Search Computer Science Books</label>
+    <div class="row">
+      <input id="searchBox" type="text" placeholder="e.g. algorithms, OS, CN, DBMS" />
+      <button class="btn small" onclick="doSearch()">Search</button>
+    </div>
+    <div id="searchResults" style="margin-top:10px"></div>
+  </div>
 
-    /* ----------------- Feelings ----------------- */
-    document.getElementById('feeling').addEventListener('change', e=>{
-      document.getElementById('feelingNow').textContent = e.target.value || '—';
-    });
+  <!-- QR -->
+  <div class="card">
+    <label>QR / ISBN Scanner</label>
+    <div class="row">
+      <button class="btn small" onclick="startScanner()">Start Scan</button>
+      <button class="btn-ghost small" onclick="stopScanner()">Stop</button>
+      <label class="btn-ghost small">
+        Upload QR
+        <input id="qrFile" type="file" accept="image/*" style="display:none" onchange="scanFromFile(event)">
+      </label>
+    </div>
+    <div id="reader" style="margin-top:10px;height:180px;background:#000;color:white;display:flex;justify-content:center;align-items:center;border-radius:8px;overflow:hidden">
+      Ready
+    </div>
+    <div id="scanInfo" class="meta" style="margin-top:6px"></div>
+  </div>
 
-    /* ----------------- Search (calls your /api/search) ----------------- */
-    async function doSearch(){
-      const q = document.getElementById('searchBox').value.trim();
-      const out = document.getElementById('searchResults');
-      out.innerHTML = 'Searching...';
-      if(!q){ out.innerHTML = '<div style="color:#64748b">Type to search</div>'; return; }
-      try{
-        const res = await fetch('/api/search?q='+encodeURIComponent(q));
-        const data = await res.json();
-        if(!data || data.length===0){ out.innerHTML='<div style="color:#64748b">No results</div>'; return; }
-        out.innerHTML = '';
-        data.forEach(b=>{
-          const div = document.createElement('div'); div.className='result';
-          div.innerHTML = `<div>
-            <div style="font-weight:700">${b.title}</div>
-            <div class="meta">${b.author} · ${b.pages} pages</div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <button class="btn small" onclick="location.href='/read-book/${b.id}'">Read Book</button>
-            <button class="btn-ghost small" onclick="document.getElementById('summaryBookId').value=${b.id};generateSummary()">Summary</button>
-          </div>`;
-          out.appendChild(div);
-        });
-      }catch(err){ out.innerHTML='Search failed'; console.error(err); }
-    }
-    function clearSearch(){ document.getElementById('searchBox').value=''; document.getElementById('searchResults').innerHTML=''; }
+  <!-- STREAK -->
+  <div class="card">
+    <label>Reading Streak</label>
+    <div style="font-size:22px;font-weight:700" id="streakCount">0 days</div>
+    <div class="meta" id="totalMins">0 minutes total</div>
+    <button class="btn small" style="margin-top:10px" onclick="logTodayMinutesPrompt()">Log Today’s Minutes</button>
+  </div>
 
-    /* ----------------- QR Scanner (html5-qrcode) ----------------- */
-    let scanner = null;
-    async function startScanner(){
-      if(scanner){ return scanner.resume(); }
-      scanner = new Html5Qrcode("reader");
-      try{
-        const cams = await Html5Qrcode.getCameras();
-        const id = cams && cams[0] ? cams[0].id : null;
-        await scanner.start(id, { fps:10, qrbox:250 }, qrSuccess, qrError);
-      }catch(err){
-        document.getElementById('scanInfo').textContent = 'Camera not available';
-      }
-    }
-    function stopScanner(){
-      if(!scanner) return;
-      scanner.stop().then(()=>{ scanner.clear(); scanner=null; document.getElementById('reader').textContent='Camera stopped'; });
-    }
-    function qrSuccess(decodedText){
-      document.getElementById('scanInfo').textContent = 'Scanned: ' + decodedText;
-      // try to match id or title
-      const t = decodedText.toLowerCase();
-      // simple match: look for number or title substring via API
-      if(/^\d+$/.test(t)){
-        location.href = '/read-book/'+parseInt(t,10);
-      } else {
-        // place scanned text into search box & run search
-        document.getElementById('searchBox').value = decodedText;
-        doSearch();
-      }
-    }
-    function qrError(err){ /* ignore */ }
-    function scanFromFile(e){
-      const file = e.target.files[0];
-      if(!file) return;
-      const qr = new Html5Qrcode("reader");
-      qr.scanFile(file, true).then(decoded => { document.getElementById('scanInfo').textContent = 'Scanned: '+decoded; document.getElementById('searchBox').value=decoded; doSearch(); qr.clear(); }).catch(()=>{ document.getElementById('scanInfo').textContent='No QR found in image'; });
-    }
+  <!-- HEATMAP -->
+  <div class="card">
+    <label>Reading Heatmap (Year)</label>
+    <div id="heatGrid" class="heat-grid"></div>
+  </div>
 
-    /* ----------------- Heatmap render ----------------- */
-    function heatColor(min){
-      if(min<=0) return '#eef2ff';
-      if(min<10) return '#dbeafe';
-      if(min<30) return '#93c5fd';
-      if(min<60) return '#60a5fa';
-      return '#1e3a8a';
-    }
-    function renderHeat(){
-      const grid = document.getElementById('heatGrid'); grid.innerHTML='';
-      for(let i=0;i<365;i++){
-        const cell = document.createElement('div'); cell.className='heat-cell';
-        cell.style.background = heatColor(heatData[i]||0);
-        cell.title = `${i+1}: ${heatData[i]||0} min`;
-        grid.appendChild(cell);
-      }
-      // update totals/streak
-      totalMinutes = heatData.reduce((a,b)=>a+b,0);
-      document.getElementById('totalMins').textContent = totalMinutes + ' minutes total';
-      computeStreak();
-    }
-    function computeStreak(){
-      // simple logic: streak = consecutive days from end with >0 minutes
-      let s=0;
-      for(let i=heatData.length-1;i>=0;i--){ if(heatData[i]>0) s++; else break; }
-      streak = s;
-      document.getElementById('streakCount').textContent = streak + ' days';
-    }
-    function resetHeat(){ heatData = Array.from({length:365}, ()=>0); renderHeat(); }
+  <!-- AI SUMMARY -->
+  <div class="card">
+    <label>AI Summary Generator</label>
+    <div class="row">
+      <input id="summaryBookId" type="number" placeholder="Book ID (e.g. 1)">
+      <button class="btn small" onclick="generateSummary()">Generate</button>
+    </div>
+    <div id="summaryResult" class="meta"></div>
+  </div>
 
-    /* ----------------- Log minutes prompt (demo) ----------------- */
-    function logTodayMinutesPrompt(){
-      const v = prompt('Minutes read today (numeric):', '30');
-      const n = Number(v||0);
-      if(n>0){
-        const todayIndex = (new Date()).getDay(); // simplified for demo (not exact date index)
-        // For accurate behavior map to day-of-year — here append to last index
-        heatData[heatData.length-1] = (heatData[heatData.length-1]||0) + n;
-        renderHeat();
-        alert('Logged ' + n + ' minutes (demo). Heatmap updated.');
-      }
-    }
+  <!-- TIMER -->
+  <div class="card">
+    <label>Read-Aloud / Focus Timer</label>
+    <div style="font-size:22px;font-weight:700" id="timerDisplay">00:00:00</div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn small" onclick="startTimer()">Start</button>
+      <button class="btn-ghost small" onclick="pauseTimer()">Pause</button>
+      <button class="btn-ghost small" onclick="stopTimer()">Stop</button>
+    </div>
+    <div class="meta" style="margin-top:5px">Adds minutes to streak automatically</div>
+  </div>
 
-    /* ----------------- Growth Chart (Chart.js) ----------------- */
-    const ctx = document.getElementById('growthChart').getContext('2d');
-    let growthChart = new Chart(ctx, {
-      type:'line',
-      data:{ labels:[], datasets:[{label:'Minutes read per day', data:[], fill:true, backgroundColor:'rgba(37,99,235,0.08)', borderColor:'#2563eb'}] },
-      options:{scales:{y:{beginAtZero:true}}}
-    });
-    function renderGrowth(monthIndex){
-      currentMonthIndex = monthIndex;
-      document.getElementById('monthLabel').textContent = months[monthIndex] + ' ' + new Date().getFullYear();
-      // create demo last 30 values for that month
-      const days = 30;
-      const arr = Array.from({length:days}, (_,i)=>Math.floor(Math.random()*80));
-      growthChart.data.labels = Array.from({length:days}, (_,i)=>i+1);
-      growthChart.data.datasets[0].data = arr;
-      growthChart.update();
-    }
-    function prevMonth(){ renderGrowth((currentMonthIndex+11)%12); }
-    function nextMonth(){ renderGrowth((currentMonthIndex+1)%12); }
+</div>
 
-    /* ----------------- Summary generator (placeholder) ----------------- */
-    function generateSummary(){
-      const id = Number(document.getElementById('summaryBookId').value||0);
-      const out = document.getElementById('summaryResult');
-      if(!id){ out.textContent = 'Enter a valid book id (e.g. 1) to generate summary (demo).'; return; }
-      out.textContent = 'Generating summary...';
-      // Demo summary; replace with real AI integration (server-side)
-      setTimeout(()=>{ out.textContent = 'Short summary (demo): This book covers core concepts with practical examples to master the subject.'; }, 700);
-    }
+<script>
+/* ----------------------------------------------------
+   FEELINGS
+---------------------------------------------------- */
+document.getElementById("feeling").addEventListener("change", e=>{
+  document.getElementById("feelingNow").textContent = e.target.value;
+});
 
-    /* ----------------- Timer (read-aloud / focus) ----------------- */
-    let timerInterval = null;
-    let timerSeconds = 0;
-    let timerRunning = false;
-    function formatTime(s){ const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60; return [h,m,sec].map(x=>String(x).padStart(2,'0')).join(':'); }
-    function startTimer(){
-      if(timerRunning) return;
-      timerRunning = true;
-      timerInterval = setInterval(()=>{ timerSeconds++; document.getElementById('timerDisplay').textContent = formatTime(timerSeconds); }, 1000);
-    }
-    function pauseTimer(){ if(!timerRunning) return; clearInterval(timerInterval); timerRunning=false; }
-    function stopTimer(){
-      if(timerInterval) clearInterval(timerInterval);
-      timerRunning=false;
-      // add minutes to heatmap as demo: convert seconds to minutes and add to today
-      const minutes = Math.round(timerSeconds/60);
-      if(minutes>0){ heatData[heatData.length-1] = (heatData[heatData.length-1]||0) + minutes; alert('Added '+minutes+' minutes to today (demo).'); renderHeat(); }
-      timerSeconds = 0; document.getElementById('timerDisplay').textContent = '00:00:00';
-    }
+/* ----------------------------------------------------
+   SEARCH
+---------------------------------------------------- */
+async function doSearch(){
+  const q = document.getElementById("searchBox").value.trim();
+  const out = document.getElementById("searchResults");
+  if(!q){ out.innerHTML=""; return; }
+  out.innerHTML = "Searching...";
 
-    /* ----------------- Init render ----------------- */
+  const res = await fetch("/api/search?q="+q);
+  const data = await res.json();
+
+  out.innerHTML = "";
+  data.forEach(b=>{
+    out.innerHTML += `
+      <div class="result">
+        <div>
+          <b>${b.title}</b><br>
+          <span class="meta">${b.author}</span>
+        </div>
+        <button class="btn small" onclick="location.href='/read-book/${b.id}'">Read</button>
+      </div>
+    `;
+  });
+}
+
+/* ----------------------------------------------------
+   QR SCANNER
+---------------------------------------------------- */
+let scanner=null;
+
+async function startScanner(){
+  if(scanner) return;
+  scanner = new Html5Qrcode("reader");
+  const cams = await Html5Qrcode.getCameras();
+  if(!cams.length) return;
+  scanner.start(cams[0].id,{fps:10,qrbox:200},qr=>{
+    document.getElementById("scanInfo").textContent="Scanned: " + qr;
+    if(/^\d+$/.test(qr)) location.href="/read-book/"+qr;
+  });
+}
+function stopScanner(){
+  if(scanner){
+    scanner.stop();
+    scanner.clear();
+    scanner=null;
+  }
+  document.getElementById("scanInfo").textContent="Stopped";
+}
+function scanFromFile(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  const qr=new Html5Qrcode("reader");
+  qr.scanFile(file,true).then(dec=>{
+    document.getElementById("scanInfo").textContent="Scanned: "+dec;
+  });
+}
+
+/* ----------------------------------------------------
+   HEATMAP + REAL STREAK
+---------------------------------------------------- */
+let heatData = Array.from({length:365}, ()=> Math.floor(Math.random()*25));
+
+function heatColor(min){
+  if(min<=0) return "#eef2ff";
+  if(min<10) return "#c7d2fe";
+  if(min<25) return "#818cf8";
+  return "#4338ca";
+}
+
+function getDayOfYear(date){
+  const start = new Date(date.getFullYear(),0,0);
+  const diff = date-start;
+  return Math.floor(diff/(1000*60*60*24));
+}
+
+function renderHeat(){
+  let grid=document.getElementById("heatGrid");
+  grid.innerHTML="";
+  for(let i=0;i<365;i++){
+    const c=document.createElement("div");
+    c.className="heat-cell";
+    c.style.background=heatColor(heatData[i]);
+    grid.appendChild(c);
+  }
+}
+
+function computeStreak(){
+  let today=getDayOfYear(new Date());
+  let s=0;
+  for(let i=today;i>=0;i--){
+    if(!heatData[i]||heatData[i]===0) break;
+    s++;
+  }
+  document.getElementById("streakCount").textContent=s+" days";
+  const total=heatData.reduce((a,b)=>a+b,0);
+  document.getElementById("totalMins").textContent=total+" minutes total";
+}
+
+function logTodayMinutesPrompt(){
+  let m=parseInt(prompt("Minutes read today?","25"));
+  if(!m||m<=0) return alert("Enter valid minutes");
+  let day=getDayOfYear(new Date());
+  heatData[day]=(heatData[day]||0)+m;
+  renderHeat();
+  computeStreak();
+}
+
+/* ----------------------------------------------------
+   AI SUMMARY
+---------------------------------------------------- */
+function generateSummary(){
+  let id=document.getElementById("summaryBookId").value;
+  let out=document.getElementById("summaryResult");
+  if(!id){ out.textContent="Enter Book ID"; return; }
+  out.textContent="Generating...";
+  setTimeout(()=>{
+    out.textContent="Short summary: This book explains core concepts with clarity and real examples. (Demo)";
+  },700);
+}
+
+/* ----------------------------------------------------
+   TIMER
+---------------------------------------------------- */
+let tSec=0, interval=null;
+
+function format(s){
+  let h=String(Math.floor(s/3600)).padStart(2,"0");
+  let m=String(Math.floor((s%3600)/60)).padStart(2,"0");
+  let se=String(s%60).padStart(2,"0");
+  return `${h}:${m}:${se}`;
+}
+
+function startTimer(){
+  if(interval) return;
+  interval=setInterval(()=>{
+    tSec++;
+    document.getElementById("timerDisplay").textContent=format(tSec);
+  },1000);
+}
+
+function pauseTimer(){
+  clearInterval(interval);
+  interval=null;
+}
+
+function stopTimer(){
+  clearInterval(interval);
+  interval=null;
+
+  let mins=Math.floor(tSec/60);
+  if(mins>0){
+    let day=getDayOfYear(new Date());
+    heatData[day]=(heatData[day]||0)+mins;
     renderHeat();
-    renderGrowth(currentMonthIndex);
     computeStreak();
-  </script>
+  }
+
+  tSec=0;
+  document.getElementById("timerDisplay").textContent="00:00:00";
+}
+
+/* INIT */
+renderHeat();
+computeStreak();
+</script>
+
 </body>
 </html>
