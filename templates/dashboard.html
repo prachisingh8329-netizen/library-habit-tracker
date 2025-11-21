@@ -19,29 +19,33 @@
       --shadow: 0 8px 24px rgba(15,23,42,0.06);
     }
     *{box-sizing:border-box;font-family:Inter,system-ui,'Poppins',sans-serif}
+
+    /* ✨ Modern Bookshelf Background (Option B) */
     body{
       margin:0;
-      background-image:url('https://i.postimg.cc/L6tcvZtZ/library-blur.jpg');
+      background-image:url('https://i.postimg.cc/j2fvLFNG/white-bookshelf-bg.jpg');
       background-size:cover;
       background-position:center;
       background-attachment:fixed;
       padding:20px;
       color:#0f172a;
     }
+
     .container{max-width:900px;margin:0 auto;}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;background:rgba(255,255,255,0.8);padding:14px;border-radius:12px;backdrop-filter:blur(6px);}
-    h1{font-size:20px;margin:0}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;background:rgba(255,255,255,0.9);padding:14px;border-radius:12px;backdrop-filter:blur(6px);}
+    h1{font-size:22px;margin:0;font-weight:600}
+
     .card{
-      background:rgba(255,255,255,0.86);
+      background:rgba(255,255,255,0.92);
       border-radius:var(--radius);
       padding:16px;
       box-shadow:var(--shadow);
       margin-bottom:14px;
-      backdrop-filter:blur(4px);
+      backdrop-filter:blur(8px);
     }
     label{display:block;margin-bottom:6px;color:var(--muted);font-size:14px}
     select,input[type="text"],input[type="number"]{
-      width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;margin-bottom:8px;background:rgba(255,255,255,0.8);
+      width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;margin-bottom:8px;background:rgba(255,255,255,0.85);
     }
     .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
     .btn-ghost{background:transparent;color:var(--accent);border:1px solid #dbeafe;padding:8px 10px;border-radius:8px;cursor:pointer}
@@ -49,9 +53,26 @@
     .row{display:flex;gap:10px}
     .result{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;border:1px solid #f1f5f9;background:#fcfdff;margin-bottom:8px}
     .meta{color:var(--muted);font-size:13px}
-    .heat-grid { display:grid; grid-template-columns: repeat(53, 9px); gap:4px; padding:6px; background:transparent }
+
+    /* 📅 Heatmap */
+    .heat-grid { display:grid; grid-template-columns: repeat(53, 9px); gap:4px; padding:6px; }
     .heat-cell{width:9px;height:9px;border-radius:2px;background:#eef2ff;border:1px solid rgba(15,23,42,0.03)}
-    @media (max-width:640px){ .row{flex-direction:column} .heat-grid{grid-template-columns:repeat(20,9px)} }
+
+    /* 🔥 Streak Controls */
+    .streak-controls{display:flex;align-items:center;gap:12px;margin-top:10px}
+    .streak-btn{
+      width:32px;height:32px;font-size:20px;font-weight:bold;
+      display:flex;justify-content:center;align-items:center;
+      border-radius:8px;border:1px solid #d0d7e3;
+      background:white;color:#334155;cursor:pointer;
+      transition:0.2s;
+    }
+    .streak-btn:hover{background:#e5edff}
+
+    @media (max-width:640px){
+      .row{flex-direction:column}
+      .heat-grid{grid-template-columns:repeat(20,9px)}
+    }
   </style>
 </head>
 <body>
@@ -99,7 +120,7 @@
         <input id="qrFile" type="file" accept="image/*" style="display:none" onchange="scanFromFile(event)">
       </label>
     </div>
-    <div id="reader" style="margin-top:10px;height:180px;background:#000;color:white;display:flex;justify-content:center;align-items:center;border-radius:8px;overflow:hidden">
+    <div id="reader" style="margin-top:10px;height:180px;background:#000;color:white;display:flex;justify-content:center;align-items:center;border-radius:8px;">
       Ready
     </div>
     <div id="scanInfo" class="meta" style="margin-top:6px"></div>
@@ -110,7 +131,12 @@
     <label>Reading Streak</label>
     <div style="font-size:22px;font-weight:700" id="streakCount">0 days</div>
     <div class="meta" id="totalMins">0 minutes total</div>
-    <button class="btn small" style="margin-top:10px" onclick="logTodayMinutesPrompt()">Log Today’s Minutes</button>
+
+    <div class="streak-controls">
+      <div class="streak-btn" onclick="decStreak()">−</div>
+      <button class="btn small" onclick="logTodayMinutesPrompt()">Log Today’s Minutes</button>
+      <div class="streak-btn" onclick="incStreak()">+</div>
+    </div>
   </div>
 
   <!-- HEATMAP -->
@@ -144,98 +170,81 @@
 </div>
 
 <script>
-/* ----------------------------------------------------
-   FEELINGS
----------------------------------------------------- */
+/* FEELINGS */
 document.getElementById("feeling").addEventListener("change", e=>{
   document.getElementById("feelingNow").textContent = e.target.value;
 });
 
-/* ----------------------------------------------------
-   SEARCH
----------------------------------------------------- */
+/* SEARCH */
 async function doSearch(){
-  const q = document.getElementById("searchBox").value.trim();
-  const out = document.getElementById("searchResults");
+  const q=document.getElementById("searchBox").value.trim();
+  const out=document.getElementById("searchResults");
   if(!q){ out.innerHTML=""; return; }
-  out.innerHTML = "Searching...";
+  out.innerHTML="Searching...";
 
-  const res = await fetch("/api/search?q="+q);
-  const data = await res.json();
+  const res=await fetch("/api/search?q="+q);
+  const data=await res.json();
 
-  out.innerHTML = "";
+  out.innerHTML="";
   data.forEach(b=>{
     out.innerHTML += `
       <div class="result">
-        <div>
-          <b>${b.title}</b><br>
-          <span class="meta">${b.author}</span>
-        </div>
+        <div><b>${b.title}</b><br><span class="meta">${b.author}</span></div>
         <button class="btn small" onclick="location.href='/read-book/${b.id}'">Read</button>
       </div>
     `;
   });
 }
 
-/* ----------------------------------------------------
-   QR SCANNER
----------------------------------------------------- */
+/* QR */
 let scanner=null;
-
 async function startScanner(){
   if(scanner) return;
-  scanner = new Html5Qrcode("reader");
-  const cams = await Html5Qrcode.getCameras();
+  scanner=new Html5Qrcode("reader");
+  const cams=await Html5Qrcode.getCameras();
   if(!cams.length) return;
+
   scanner.start(cams[0].id,{fps:10,qrbox:200},qr=>{
-    document.getElementById("scanInfo").textContent="Scanned: " + qr;
+    document.getElementById("scanInfo").textContent="Scanned: "+qr;
     if(/^\d+$/.test(qr)) location.href="/read-book/"+qr;
   });
 }
 function stopScanner(){
-  if(scanner){
-    scanner.stop();
-    scanner.clear();
-    scanner=null;
-  }
-  document.getElementById("scanInfo").textContent="Stopped";
+  if(scanner){ scanner.stop(); scanner.clear(); scanner=null; }
 }
 function scanFromFile(e){
   const file=e.target.files[0];
-  if(!file) return;
+  if(!file)return;
   const qr=new Html5Qrcode("reader");
   qr.scanFile(file,true).then(dec=>{
     document.getElementById("scanInfo").textContent="Scanned: "+dec;
   });
 }
 
-/* ----------------------------------------------------
-   HEATMAP + REAL STREAK
----------------------------------------------------- */
-let heatData = Array.from({length:365}, ()=> Math.floor(Math.random()*25));
+/* HEATMAP + STREAK */
+let heatData=Array.from({length:365},()=>Math.floor(Math.random()*10));
 
-function heatColor(min){
-  if(min<=0) return "#eef2ff";
-  if(min<10) return "#c7d2fe";
-  if(min<25) return "#818cf8";
-  return "#4338ca";
+function heatColor(m){
+  if(m<=0)return"#eef2ff";
+  if(m<10)return"#c7d2fe";
+  if(m<20)return"#818cf8";
+  return"#4338ca";
 }
 
-function getDayOfYear(date){
-  const start = new Date(date.getFullYear(),0,0);
-  const diff = date-start;
-  return Math.floor(diff/(1000*60*60*24));
+function getDayOfYear(d){
+  const s=new Date(d.getFullYear(),0,0);
+  return Math.floor((d-s)/(1000*60*60*24));
 }
 
 function renderHeat(){
-  let grid=document.getElementById("heatGrid");
-  grid.innerHTML="";
-  for(let i=0;i<365;i++){
+  const g=document.getElementById("heatGrid");
+  g.innerHTML="";
+  heatData.forEach(m=>{
     const c=document.createElement("div");
     c.className="heat-cell";
-    c.style.background=heatColor(heatData[i]);
-    grid.appendChild(c);
-  }
+    c.style.background=heatColor(m);
+    g.appendChild(c);
+  });
 }
 
 function computeStreak(){
@@ -246,67 +255,67 @@ function computeStreak(){
     s++;
   }
   document.getElementById("streakCount").textContent=s+" days";
-  const total=heatData.reduce((a,b)=>a+b,0);
-  document.getElementById("totalMins").textContent=total+" minutes total";
+  document.getElementById("totalMins").textContent=
+    heatData.reduce((a,b)=>a+b,0)+" minutes total";
 }
 
+/* Manual streak adjust */
+function incStreak(){
+  let today=getDayOfYear(new Date());
+  heatData[today]=(heatData[today]||0)+20;
+  renderHeat(); computeStreak();
+}
+function decStreak(){
+  let today=getDayOfYear(new Date());
+  heatData[today]=Math.max(0,(heatData[today]||0)-20);
+  renderHeat(); computeStreak();
+}
+
+/* Log Today */
 function logTodayMinutesPrompt(){
   let m=parseInt(prompt("Minutes read today?","25"));
-  if(!m||m<=0) return alert("Enter valid minutes");
-  let day=getDayOfYear(new Date());
-  heatData[day]=(heatData[day]||0)+m;
-  renderHeat();
-  computeStreak();
+  if(!m||m<=0)return;
+  let d=getDayOfYear(new Date());
+  heatData[d]=(heatData[d]||0)+m;
+  renderHeat(); computeStreak();
 }
 
-/* ----------------------------------------------------
-   AI SUMMARY
----------------------------------------------------- */
+/* AI SUMMARY */
 function generateSummary(){
   let id=document.getElementById("summaryBookId").value;
   let out=document.getElementById("summaryResult");
   if(!id){ out.textContent="Enter Book ID"; return; }
-  out.textContent="Generating...";
+  out.textContent="Generating summary...";
   setTimeout(()=>{
-    out.textContent="Short summary: This book explains core concepts with clarity and real examples. (Demo)";
-  },700);
+    out.textContent="Short summary: This book explains concepts with simple clarity. (Demo)";
+  },800);
 }
 
-/* ----------------------------------------------------
-   TIMER
----------------------------------------------------- */
+/* TIMER */
 let tSec=0, interval=null;
-
 function format(s){
   let h=String(Math.floor(s/3600)).padStart(2,"0");
   let m=String(Math.floor((s%3600)/60)).padStart(2,"0");
   let se=String(s%60).padStart(2,"0");
   return `${h}:${m}:${se}`;
 }
-
 function startTimer(){
-  if(interval) return;
+  if(interval)return;
   interval=setInterval(()=>{
-    tSec++;
-    document.getElementById("timerDisplay").textContent=format(tSec);
+    tSec++; document.getElementById("timerDisplay").textContent=format(tSec);
   },1000);
 }
-
 function pauseTimer(){
-  clearInterval(interval);
-  interval=null;
+  clearInterval(interval); interval=null;
 }
-
 function stopTimer(){
-  clearInterval(interval);
-  interval=null;
+  clearInterval(interval); interval=null;
 
   let mins=Math.floor(tSec/60);
   if(mins>0){
-    let day=getDayOfYear(new Date());
-    heatData[day]=(heatData[day]||0)+mins;
-    renderHeat();
-    computeStreak();
+    let d=getDayOfYear(new Date());
+    heatData[d]=(heatData[d]||0)+mins;
+    renderHeat(); computeStreak();
   }
 
   tSec=0;
