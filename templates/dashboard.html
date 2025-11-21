@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Library Habit Tracker — Dashboard</title>
 
-  <!-- Chart.js (kept for future use) -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- QR scanner -->
+
+  <!-- QR Scanner -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
@@ -18,12 +19,12 @@
       --radius: 12px;
       --shadow: 0 8px 24px rgba(15,23,42,0.06);
     }
-    *{box-sizing:border-box;font-family:Inter,system-ui,'Poppins',sans-serif}
+    * { box-sizing:border-box; font-family:Inter,system-ui,'Poppins',sans-serif }
 
-    /* Using the uploaded local image path (will be transformed by your deploy tool) */
+    /* ⭐ Library Background */
     body{
       margin:0;
-      background-image: url('/mnt/data/OIP (1).jpg');
+      background-image:url('https://i.postimg.cc/SN0njHkv/library-wood.jpg');
       background-size:cover;
       background-position:center;
       background-attachment:fixed;
@@ -32,66 +33,90 @@
     }
 
     .container{max-width:900px;margin:0 auto;}
+
     header{
-      display:flex;justify-content:space-between;align-items:center;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
       margin-bottom:18px;
       background:rgba(255,255,255,0.88);
-      padding:14px;border-radius:12px;
-      backdrop-filter:blur(6px);
+      padding:14px;
+      border-radius:12px;
+      backdrop-filter:blur(8px);
     }
+
     h1{font-size:22px;margin:0;font-weight:600}
 
     .card{
-      background:rgba(255,255,255,0.95);
+      background:rgba(255,255,255,0.92);
       border-radius:var(--radius);
       padding:16px;
-      box-shadow:var(--shadow);
       margin-bottom:14px;
+      box-shadow:var(--shadow);
       backdrop-filter:blur(6px);
     }
+
     label{display:block;margin-bottom:6px;color:var(--muted);font-size:14px}
+
     select,input[type="text"],input[type="number"]{
-      width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;margin-bottom:8px;background:white;
+      width:100%;
+      padding:10px;
+      border-radius:8px;
+      border:1px solid #d1d5db;
+      background:white;
+      margin-bottom:8px;
+      font-size:14px;
     }
 
-    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
-    .btn-ghost{background:transparent;color:var(--accent);border:1px solid #dbeafe;padding:8px 10px;border-radius:8px;cursor:pointer}
-    .small{font-size:13px;padding:6px 10px}
-    .row{display:flex;gap:10px;align-items:center}
+    .btn{
+      background:var(--accent);
+      color:white;
+      border:none;
+      padding:8px 12px;
+      border-radius:8px;
+      cursor:pointer;
+    }
+
+    .btn.small{font-size:13px;padding:6px 10px}
+
+    .btn-ghost{
+      background:transparent;
+      color:var(--accent);
+      border:1px solid #dbeafe;
+      border-radius:8px;
+      padding:6px 10px;
+      cursor:pointer;
+    }
+
+    .row{display:flex;gap:10px}
+
     .result{
-      display:flex;justify-content:space-between;align-items:center;padding:10px;
-      border-radius:8px;border:1px solid #f1f5f9;background:#fcfdff;margin-bottom:8px
-    }
-    .meta{color:var(--muted);font-size:13px}
-
-    /* Heatmap */
-    .heat-grid { display:grid; grid-template-columns: repeat(53, 9px); gap:4px; padding:6px; }
-    .heat-cell{width:9px;height:9px;border-radius:2px;background:#eef2ff;border:1px solid rgba(15,23,42,0.03)}
-
-    /* Streak Controls */
-    .streak-controls{
       display:flex;
+      justify-content:space-between;
       align-items:center;
-      justify-content:center;
-      gap:12px;
-      margin-top:12px;
+      padding:10px;
+      background:#fcfdff;
+      border:1px solid #e5e7eb;
+      border-radius:8px;
+      margin-bottom:8px;
     }
-    .streak-btn{
-      width:36px;height:36px;font-size:20px;font-weight:bold;
-      display:flex;justify-content:center;align-items:center;
-      border-radius:10px;border:1px solid #cbd5e1;
-      background:white;color:#334155;cursor:pointer;
-      transition:0.15s;
-    }
-    .streak-btn:hover{background:#eef2ff}
 
-    .manual-row{display:flex;gap:8px;margin-top:12px;align-items:center}
-    .manual-row input[type="number"]{width:120px}
-    @media (max-width:640px){
+    .meta{font-size:13px;color:var(--muted)}
+
+    /* ⭐ Calendar */
+    #calendar div{
+      padding:10px;
+      border-radius:8px;
+      cursor:pointer;
+      background:white;
+      transition:0.2s;
+    }
+    #calendar div:hover{
+      background:#dbeafe;
+    }
+
+    @media(max-width:640px){
       .row{flex-direction:column}
-      .heat-grid{grid-template-columns:repeat(20,9px)}
-      .manual-row{flex-direction:column;align-items:stretch}
-      .manual-row input[type="number"]{width:100%}
     }
   </style>
 </head>
@@ -99,12 +124,13 @@
 
 <div class="container">
 
+  <!-- HEADER -->
   <header>
     <h1>📚 Library Habit Tracker</h1>
-    <div style="color:var(--muted)">Welcome back — keep reading!</div>
+    <div style="color:var(--muted)">Welcome back, Reader!</div>
   </header>
 
-  <!-- Feeling -->
+  <!-- FEELINGS -->
   <div class="card">
     <label>How are you feeling today?</label>
     <select id="feeling">
@@ -119,14 +145,14 @@
     <div class="meta">Selected: <b id="feelingNow">—</b></div>
   </div>
 
-  <!-- Search -->
+  <!-- SEARCH -->
   <div class="card">
     <label>Search Computer Science Books</label>
     <div class="row">
       <input id="searchBox" type="text" placeholder="e.g. algorithms, OS, DBMS" />
       <button class="btn small" onclick="doSearch()">Search</button>
     </div>
-    <div id="searchResults" style="margin-top:10px"></div>
+    <div id="searchResults"></div>
   </div>
 
   <!-- QR -->
@@ -135,47 +161,38 @@
     <div class="row">
       <button class="btn small" onclick="startScanner()">Start Scan</button>
       <button class="btn-ghost small" onclick="stopScanner()">Stop</button>
-      <label class="btn-ghost small" style="cursor:pointer;">
+      <label class="btn-ghost small">
         Upload QR
         <input id="qrFile" type="file" accept="image/*" style="display:none" onchange="scanFromFile(event)">
       </label>
     </div>
-    <div id="reader" style="margin-top:10px;height:180px;background:#000;color:white;display:flex;justify-content:center;align-items:center;border-radius:8px;">
-      Ready
-    </div>
-    <div id="scanInfo" class="meta" style="margin-top:6px"></div>
+    <div id="reader" style="height:170px;background:#000;color:white;border-radius:8px;margin-top:10px;display:flex;justify-content:center;align-items:center;">Ready</div>
+    <div id="scanInfo" class="meta"></div>
   </div>
 
-  <!-- STREAK SECTION -->
+  <!-- ⭐ NEW MONTHLY CALENDAR -->
   <div class="card">
-    <label>Reading Streak</label>
+    <label style="font-size:18px;font-weight:600;">📅 Reading Calendar</label>
 
-    <!-- current streak display -->
-    <div style="font-size:22px;font-weight:700;text-align:center" id="streakCount">0 days</div>
-    <div class="meta" style="text-align:center" id="totalMins">0 minutes total</div>
-
-    <!-- +/- quick controls -->
-    <div class="streak-controls" aria-hidden="false">
-      <div class="streak-btn" onclick="decStreak()" title="Decrease today's minutes (reduces streak if becomes zero)">−</div>
-      <div class="streak-btn" onclick="incStreak()" title="Increase today's minutes (adds a reading day)">+</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+      <button class="btn small" onclick="prevMonth()">◀</button>
+      <h3 id="monthLabel" style="margin:0;font-weight:600;"></h3>
+      <button class="btn small" onclick="nextMonth()">▶</button>
     </div>
 
-    <!-- Manual input (Option 1 chosen) -->
-    <div class="manual-row" style="justify-content:center">
-      <input id="manualDays" type="number" min="0" placeholder="Enter streak days" />
-      <button class="btn small" onclick="setStreakFromInput()">Update Streak</button>
-      <button class="btn-ghost small" onclick="clearStreak()">Reset</button>
-    </div>
-
-    <div style="margin-top:12px;text-align:center">
-      <button class="btn small" onclick="logTodayMinutesPrompt()">Log Today’s Minutes</button>
+    <div id="calendar" style="
+      display:grid;
+      grid-template-columns: repeat(7,1fr);
+      gap:6px;
+      margin-top:12px;">
     </div>
   </div>
 
-  <!-- HEATMAP -->
+  <!-- ⭐ DAILY GRAPH -->
   <div class="card">
-    <label>Reading Heatmap (Year)</label>
-    <div id="heatGrid" class="heat-grid"></div>
+    <label style="font-size:18px;font-weight:600;">📊 Daily Reading Graph</label>
+    <canvas id="dayGraph" height="150"></canvas>
+    <div id="graphInfo" class="meta">Click a date to view details.</div>
   </div>
 
   <!-- AI SUMMARY -->
@@ -185,14 +202,15 @@
       <input id="summaryBookId" type="number" placeholder="Book ID">
       <button class="btn small" onclick="generateSummary()">Generate</button>
     </div>
-    <div id="summaryResult" class="meta" style="margin-top:8px"></div>
+    <div id="summaryResult" class="meta"></div>
   </div>
 
   <!-- TIMER -->
   <div class="card">
     <label>Read-Aloud / Focus Timer</label>
-    <div style="font-size:22px;font-weight:700;text-align:center" id="timerDisplay">00:00:00</div>
-    <div class="row" style="margin-top:8px;justify-content:center">
+    <div id="timerDisplay" style="font-size:24px;font-weight:700;text-align:center;">00:00:00</div>
+
+    <div class="row" style="margin-top:10px;">
       <button class="btn small" onclick="startTimer()">Start</button>
       <button class="btn-ghost small" onclick="pauseTimer()">Pause</button>
       <button class="btn-ghost small" onclick="stopTimer()">Stop</button>
@@ -202,209 +220,171 @@
 </div>
 
 <script>
-/* -------------------- Basic UI handlers -------------------- */
+/* ------------------ FEELING ------------------ */
 document.getElementById("feeling").addEventListener("change", e=>{
   document.getElementById("feelingNow").textContent = e.target.value;
 });
 
-/* -------------------- Search (uses your /api/search) -------------------- */
+/* ------------------ SEARCH ------------------ */
 async function doSearch(){
-  const q = document.getElementById("searchBox").value.trim();
-  const out = document.getElementById("searchResults");
+  const q=document.getElementById("searchBox").value.trim();
+  const out=document.getElementById("searchResults");
   if(!q){ out.innerHTML=""; return; }
-  out.innerHTML = "Searching...";
-  try {
-    const res = await fetch('/api/search?q='+encodeURIComponent(q));
-    const data = await res.json();
-    out.innerHTML = "";
-    if(!data || data.length === 0) { out.innerHTML = '<div class="meta">No results</div>'; return; }
-    data.forEach(b => {
-      out.innerHTML += `
-        <div class="result">
-          <div><b>${b.title}</b><br><span class="meta">${b.author || ''}</span></div>
-          <button class="btn small" onclick="location.href='/read-book/${b.id}'">Read</button>
-        </div>`;
-    });
-  } catch (e) {
-    out.innerHTML = '<div class="meta">Search failed</div>';
-    console.error(e);
-  }
+
+  out.innerHTML="Searching...";
+
+  const res=await fetch("/api/search?q="+q);
+  const data=await res.json();
+
+  out.innerHTML="";
+  data.forEach(b=>{
+    out.innerHTML += `
+      <div class="result">
+        <div><b>${b.title}</b><br><span class="meta">${b.author}</span></div>
+        <button class="btn small" onclick="location.href='/read-book/${b.id}'">Read</button>
+      </div>`;
+  });
 }
 
-/* -------------------- QR scanner -------------------- */
-let scanner = null;
+/* ------------------ QR SCAN ------------------ */
+let scanner=null;
 async function startScanner(){
   if(scanner) return;
-  scanner = new Html5Qrcode("reader");
-  try {
-    const cams = await Html5Qrcode.getCameras();
-    if(!cams || !cams.length) { document.getElementById('scanInfo').textContent = 'No camera found'; return; }
-    await scanner.start(cams[0].id, { fps: 10, qrbox: 200 }, decoded => {
-      document.getElementById('scanInfo').textContent = 'Scanned: ' + decoded;
-      if(/^\d+$/.test(decoded)) location.href = '/read-book/' + decoded;
-      else { document.getElementById('searchBox').value = decoded; doSearch(); }
-    }, err => {
-      /* ignore frame errors */
-    });
-  } catch(err) {
-    console.error(err);
-    document.getElementById('scanInfo').textContent = 'Camera access denied or not available';
-  }
+  scanner=new Html5Qrcode("reader");
+  const cams=await Html5Qrcode.getCameras();
+  if(!cams.length) return;
+
+  scanner.start(cams[0].id,{fps:10,qrbox:200},qr=>{
+    document.getElementById("scanInfo").textContent="Scanned: "+qr;
+    if(/^\d+$/.test(qr)) location.href="/read-book/"+qr;
+  });
 }
 function stopScanner(){
-  if(!scanner) return;
-  scanner.stop().then(()=>{ scanner.clear(); scanner = null; document.getElementById('scanInfo').textContent = 'Scanner stopped'; }).catch(()=>{ scanner=null; });
+  if(scanner){ scanner.stop(); scanner.clear(); scanner=null; }
 }
 function scanFromFile(e){
-  const file = e.target.files[0];
-  if(!file) return;
-  const qr = new Html5Qrcode("reader");
-  qr.scanFile(file, true).then(decoded => {
-    document.getElementById('scanInfo').textContent = 'Scanned: ' + decoded;
-    if(/^\d+$/.test(decoded)) location.href = '/read-book/' + decoded;
-    else { document.getElementById('searchBox').value = decoded; doSearch(); }
-    qr.clear();
-  }).catch(err=>{ document.getElementById('scanInfo').textContent = 'No QR found in image'; });
+  const file=e.target.files[0];
+  if(!file)return;
+  const qr=new Html5Qrcode("reader");
+  qr.scanFile(file,true).then(code=>{
+    document.getElementById("scanInfo").textContent="Scanned: "+code;
+  });
 }
 
-/* -------------------- Heatmap + Streak logic -------------------- */
-/* heatData stores minutes read for each day-of-year index (0..364) */
-let heatData = new Array(365).fill(0);
+/* ------------------ CALENDAR + GRAPH ------------------ */
+let today=new Date();
+let currentMonth=today.getMonth();
+let currentYear=today.getFullYear();
+let dayData={};
 
-/* helper: day-of-year index */
-function getDayOfYear(d = new Date()){
-  const start = new Date(d.getFullYear(), 0, 0);
-  const diff = d - start;
-  return Math.floor(diff / (1000*60*60*24));
-}
+function daysInMonth(m,y){ return new Date(y,m+1,0).getDate(); }
 
-/* color scale */
-function heatColor(min){
-  if(!min || min <= 0) return '#eef2ff';
-  if(min < 15) return '#c7d2fe';
-  if(min < 30) return '#818cf8';
-  return '#4338ca';
-}
+function renderCalendar(){
+  const cal=document.getElementById("calendar");
+  const lbl=document.getElementById("monthLabel");
 
-/* render heatmap */
-function renderHeat(){
-  const grid = document.getElementById('heatGrid');
-  grid.innerHTML = '';
-  for(let i=0;i<365;i++){
-    const cell = document.createElement('div');
-    cell.className = 'heat-cell';
-    cell.style.background = heatColor(heatData[i]);
-    cell.title = ${i+1}: ${heatData[i] || 0} minutes;
-    grid.appendChild(cell);
+  cal.innerHTML="";
+  lbl.textContent=today.toLocaleString("default",{month:"long"})+" "+currentYear;
+
+  const first=new Date(currentYear,currentMonth,1).getDay();
+  const total=daysInMonth(currentMonth,currentYear);
+
+  for(let i=0;i<first;i++) cal.innerHTML+="<div></div>";
+
+  for(let d=1;d<=total;d++){
+    let key=`${currentYear}-${currentMonth+1}-${d}`;
+    let bg = dayData[key] ? "background:#bfdbfe" : "";
+
+    cal.innerHTML += `
+      <div onclick="selectDate(${d})" style="${bg}">
+        ${d}
+      </div>`;
   }
 }
 
-/* compute streak = consecutive days ending today with minutes>0 */
-function computeStreak(){
-  const today = getDayOfYear();
-  let s = 0;
-  for(let i = today; i >= 0; i--){
-    if(!heatData[i] || heatData[i] === 0) break;
-    s++;
-  }
-  document.getElementById('streakCount').textContent = s + ' days';
-  const total = heatData.reduce((a,b)=>a + (b || 0), 0);
-  document.getElementById('totalMins').textContent = total + ' minutes total';
+function prevMonth(){
+  currentMonth--;
+  if(currentMonth<0){ currentMonth=11; currentYear--; }
+  today=new Date(currentYear,currentMonth);
+  renderCalendar();
 }
 
-/* quick manual +/- controls (adds or removes minutes for today) */
-function incStreak(){
-  const d = getDayOfYear();
-  heatData[d] = (heatData[d] || 0) + 30; // add 30 minutes
-  renderHeat(); computeStreak();
-}
-function decStreak(){
-  const d = getDayOfYear();
-  heatData[d] = Math.max(0, (heatData[d] || 0) - 30);
-  renderHeat(); computeStreak();
+function nextMonth(){
+  currentMonth++;
+  if(currentMonth>11){ currentMonth=0; currentYear++; }
+  today=new Date(currentYear,currentMonth);
+  renderCalendar();
 }
 
-/* Option 1: Manual Input (user typed days) */
-function setStreakFromInput(){
-  const val = parseInt(document.getElementById('manualDays').value, 10);
-  if(isNaN(val) || val < 0){
-    alert('Enter a valid non-negative number of days');
-    return;
-  }
+let chart;
 
-  // We will set 'val' consecutive days ending today as reading days.
-  // Simple approach: clear previous heatData and mark last 'val' days with default minutes (e.g., 25).
-  // NOTE: This resets other days in the year (intended behavior for "set streak manually").
-  heatData = new Array(365).fill(0);
-  const today = getDayOfYear();
-  for(let i = 0; i < val; i++){
-    const idx = today - i;
-    if(idx < 0) break;
-    heatData[idx] = 25; // default minutes per day for manual set
-  }
-  renderHeat(); computeStreak();
+function selectDate(d){
+  let key=`${currentYear}-${currentMonth+1}-${d}`;
+  if(!dayData[key]) dayData[key]=Math.floor(Math.random()*60);
+
+  let mins=dayData[key];
+
+  document.getElementById("graphInfo").textContent =
+    `Reading on ${d}/${currentMonth+1}/${currentYear}: ${mins} minutes`;
+
+  const ctx=document.getElementById("dayGraph");
+
+  if(chart) chart.destroy();
+
+  chart=new Chart(ctx,{
+    type:"bar",
+    data:{
+      labels:["Reading Minutes"],
+      datasets:[{
+        data:[mins],
+        backgroundColor:"#2563eb",
+        borderRadius:10
+      }]
+    },
+    options:{ scales:{ y:{beginAtZero:true} } }
+  });
 }
 
-/* Reset heat/streak (clears all) */
-function clearStreak(){
-  if(!confirm('Reset all reading data for the year?')) return;
-  heatData = new Array(365).fill(0);
-  renderHeat(); computeStreak();
-}
+renderCalendar();
 
-/* Log minutes for today (prompt) */
-function logTodayMinutesPrompt(){
-  const v = prompt('Minutes read today (numeric):', '30');
-  const m = parseInt(v,10);
-  if(isNaN(m) || m <= 0) { alert('Enter valid minutes'); return; }
-  const d = getDayOfYear();
-  heatData[d] = (heatData[d] || 0) + m;
-  renderHeat(); computeStreak();
-}
-
-/* -------------------- Summary (demo) -------------------- */
+/* ------------------ SUMMARY ------------------ */
 function generateSummary(){
-  const id = document.getElementById('summaryBookId').value;
-  const out = document.getElementById('summaryResult');
-  if(!id){ out.textContent = 'Enter Book ID'; return; }
-  out.textContent = 'Generating...';
-  setTimeout(()=> out.textContent = 'Short summary (demo): Clear explanation of core concepts.', 700);
+  let id=document.getElementById("summaryBookId").value;
+  let out=document.getElementById("summaryResult");
+  if(!id){ out.textContent="Enter Book ID"; return; }
+  out.textContent="Generating...";
+  setTimeout(()=> out.textContent="Short AI summary (demo): This book explains concepts clearly.", 700);
 }
 
-/* -------------------- Timer -------------------- */
-let tSec = 0, interval = null;
-function formatTime(s){
-  const h = String(Math.floor(s/3600)).padStart(2,'0');
-  const m = String(Math.floor((s%3600)/60)).padStart(2,'0');
-  const sec = String(s%60).padStart(2,'0');
-  return ${h}:${m}:${sec};
+/* ------------------ TIMER ------------------ */
+let tSec=0, intv=null;
+
+function fmt(s){
+  let h=String(Math.floor(s/3600)).padStart(2,"0");
+  let m=String(Math.floor((s%3600)/60)).padStart(2,"0");
+  let se=String(s%60).padStart(2,"0");
+  return `${h}:${m}:${se}`;
 }
+
 function startTimer(){
-  if(interval) return;
-  interval = setInterval(()=> {
+  if(intv) return;
+  intv=setInterval(()=>{
     tSec++;
-    document.getElementById('timerDisplay').textContent = formatTime(tSec);
-  }, 1000);
+    document.getElementById("timerDisplay").textContent=fmt(tSec);
+  },1000);
 }
-function pauseTimer(){
-  clearInterval(interval); interval = null;
-}
+function pauseTimer(){ clearInterval(intv); intv=null; }
 function stopTimer(){
-  clearInterval(interval); interval = null;
-  const mins = Math.floor(tSec / 60);
-  if(mins > 0){
-    const d = getDayOfYear();
-    heatData[d] = (heatData[d] || 0) + mins;
-    renderHeat(); computeStreak();
-  }
-  tSec = 0;
-  document.getElementById('timerDisplay').textContent = '00:00:00';
+  clearInterval(intv); intv=null;
+  tSec=0;
+  document.getElementById("timerDisplay").textContent="00:00:00";
 }
-
-/* -------------------- Init -------------------- */
-renderHeat();
-computeStreak();
 </script>
 
 </body>
 </html>
+
+   
+
+
+  
