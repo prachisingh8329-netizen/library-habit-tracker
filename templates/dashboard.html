@@ -7,7 +7,8 @@
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- html5-qrcode -->
+
+  <!-- QR Scanner -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
@@ -29,379 +30,290 @@
 
     .wrap{
       max-width:1200px;margin:28px auto;padding:18px;
-      display:grid;grid-template-columns: 320px 1fr;gap:20px;
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:20px;
     }
 
-    /* Left column (mood pie + heatmap small view) */
-    .left-col {
-      display:flex;flex-direction:column;gap:18px;
-    }
     .card{
-      background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:0 10px 30px rgba(2,6,23,0.08);
+      background:var(--card);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:0 10px 30px rgba(2,6,23,0.08);
     }
+
     .card h3{margin:0 0 12px;font-size:18px;color:var(--muted)}
-    .mini { display:flex;gap:12px;align-items:center; }
 
-    /* Right area top: search + scanner */
-    .right-top { display:grid; grid-template-columns: 1fr 420px; gap:18px; margin-bottom:18px; }
-    .search-list { max-height:320px; overflow:auto; padding:8px; border-radius:10px; background:rgba(0,0,0,0.02); }
-    .result-item{ padding:10px;border-radius:8px;margin-bottom:8px;background:white;cursor:pointer; box-shadow:0 4px 12px rgba(2,6,23,0.04); }
-    .result-item small{color: #6b7280}
+    .left-col{
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
 
-    /* QR area */
-    #reader { width:100%; height:320px; border-radius:10px; overflow:hidden; background:#000; display:flex;align-items:center;justify-content:center;color:white;font-weight:600 }
+    #moodPie{
+      max-width:160px !important;
+      max-height:160px !important;
+      margin:auto;
+      display:block;
+    }
 
-    /* Heatmap (big) */
-    .heat-row { display:flex; gap:6px; align-items:center; margin-top:10px; }
-    .heat-grid {
+    .right-top{
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:18px;
+      margin-bottom:18px;
+    }
+
+    /* Search box small */
+    #searchInput{
+      padding:8px 12px;
+      border-radius:8px;
+      border:1px solid #d1d5db;
+      font-size:14px;
+      width:100%;
+      max-width:280px;
+      margin-bottom:8px;
+    }
+
+    .search-list{
+      max-height:320px;
+      overflow:auto;
+      background:rgba(0,0,0,0.03);
+      border-radius:10px;
+      padding:8px;
+    }
+
+    .result-item{
+      padding:10px;
+      background:white;
+      margin-bottom:8px;
+      border-radius:8px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.06);
+      cursor:pointer;
+    }
+
+    #reader{
+      width:100%;
+      height:220px;
+      border-radius:10px;
+      background:black;
+      color:white;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:600;
+    }
+
+    .heat-grid{
       display:grid;
       grid-template-columns: repeat(53, 12px);
       gap:4px;
-      align-items:center;
-    }
-    .heat-cell {
-      width:12px;height:12px;border-radius:3px;background:#f3f4f6;border:1px solid rgba(0,0,0,0.04);
     }
 
-    /* page-time panel */
-    .predictor { display:flex; flex-direction:column; gap:8px; }
-    .predictor input { padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.08) }
-    .predictor .big { font-size:20px;font-weight:700;color:var(--muted) }
+    .heat-cell{
+      width:12px;
+      height:12px;
+      border-radius:3px;
+    }
 
-    /* Responsive */
-    @media (max-width: 980px){
-      .wrap{ grid-template-columns: 1fr; padding:12px;}
-      .right-top { grid-template-columns: 1fr; }
-      .heat-grid { grid-template-columns: repeat(18, 12px); }
+    /* Page Prediction */
+    .predictor input{
+      padding:8px;
+      border-radius:8px;
+      border:1px solid #e5e7eb;
+      width:100%;
     }
   </style>
 </head>
+
 <body>
-
 <div class="wrap">
-
-  <!-- LEFT column -->
+  <!-- LEFT COLUMN -->
   <div class="left-col">
 
     <!-- Mood Pie -->
     <div class="card">
-      <h3>Mood Distribution (Past week)</h3>
-      <div style="display:flex;gap:12px;align-items:center">
-        <canvas id="moodPie" width="200" height="200"></canvas>
-        <div style="flex:1">
-          <div style="margin-bottom:6px"><strong>Current mood:</strong> <span id="curMood">🤩 Motivated</span></div>
-          <div style="margin-bottom:6px">Tap a mood slice to set as today.</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button onclick="setMood('😊 Happy')">😊 Happy</button>
-            <button onclick="setMood('😌 Calm')">😌 Calm</button>
-            <button onclick="setMood('🤩 Motivated')">🤩 Motivated</button>
-            <button onclick="setMood('😔 Tired')">😔 Tired</button>
-            <button onclick="setMood('😤 Stressed')">😤 Stressed</button>
-            <button onclick="setMood('😴 Sleepy')">😴 Sleepy</button>
-          </div>
-        </div>
+      <h3>Mood Distribution (Past Week)</h3>
+      <canvas id="moodPie"></canvas>
+
+      <div style="text-align:center;margin-top:10px;font-size:14px">
+        <strong>Current Mood:</strong> <span id="curMood">😊 Happy</span>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;justify-content:center">
+        <button onclick="setMood('😊 Happy')" class="btn">😊</button>
+        <button onclick="setMood('😌 Calm')" class="btn">😌</button>
+        <button onclick="setMood('🤩 Motivated')" class="btn">🤩</button>
+        <button onclick="setMood('😔 Tired')" class="btn">😔</button>
+        <button onclick="setMood('😤 Stressed')" class="btn">😤</button>
+        <button onclick="setMood('😴 Sleepy')" class="btn">😴</button>
       </div>
     </div>
 
-    <!-- Heatmap -->
+    <!-- Heatmap Small -->
     <div class="card">
-      <h3>Reading Streak Heatmap (Year)</h3>
-      <div style="display:flex;gap:12px">
-        <div>
-          <div style="font-size:12px;color:#6b7280;margin-bottom:8px">Darker = more minutes read</div>
-          <div id="heatLegend" style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">
-            <div style="width:12px;height:12px;background:#f3f4f6;border-radius:3px"></div><small style="color:#6b7280">0</small>
-            <div style="width:12px;height:12px;background:#dbeafe;border-radius:3px"></div><small style="color:#6b7280">10</small>
-            <div style="width:12px;height:12px;background:#93c5fd;border-radius:3px"></div><small style="color:#6b7280">30</small>
-            <div style="width:12px;height:12px;background:#1e90ff;border-radius:3px"></div><small style="color:#6b7280">60+</small>
-          </div>
-          <div id="heatmap" style="width: 100%; overflow:auto; padding-bottom:6px;">
-            <!-- heat grid inserted by JS -->
-          </div>
-        </div>
+      <h3>Reading Streak Heatmap (Small View)</h3>
+
+      <div style="font-size:13px;margin-bottom:6px;color:#6b7280">
+        Darker = more minutes read
       </div>
+
+      <div id="heatmap" style="overflow:auto;padding-bottom:6px;"></div>
     </div>
 
   </div>
+  <!-- END LEFT COLUMN -->
 
-  <!-- RIGHT column -->
+
+  <!-- RIGHT COLUMN -->
   <div style="display:flex;flex-direction:column;gap:18px">
 
-    <!-- Top: search list + QR scanner -->
+    <!-- SEARCH + QR -->
     <div class="right-top">
 
-      <!-- search & results -->
+      <!-- SEARCH BOX -->
       <div class="card">
         <h3>Search Computer Science Books</h3>
-        <input id="searchInput" placeholder="Type 'algorithm', 'python', 'os'..." style="padding:10px;border-radius:8px;border:1px solid #e6e6e6;width:100%;margin-bottom:8px" />
-        <div class="search-list" id="searchResults"></div>
+
+        <input id="searchInput" placeholder="Search CS Books..." />
+
+        <div id="searchResults" class="search-list"></div>
       </div>
 
-      <!-- QR scanner + details -->
+      <!-- QR SCANNER -->
       <div class="card">
         <h3>Scan Book (QR / ISBN)</h3>
-        <div id="reader">Camera off — click Start Scan</div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn" onclick="startScanner()">Start Scan</button>
-          <button class="btn" onclick="stopScanner()" style="background:#ef4444">Stop</button>
+
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="btn" onclick="startScanner()">📷 Scan</button>
+
+          <label class="btn" style="background:#6366f1;cursor:pointer;">
+            📁 Upload QR
+            <input type="file" id="qrUpload" accept="image/*" style="display:none" onchange="scanFromFile(event)">
+          </label>
         </div>
 
-        <div id="scanDetails" style="margin-top:12px;color:var(--muted)"></div>
+        <div id="reader">Ready to Scan...</div>
+
+        <div id="scanDetails" style="margin-top:10px;font-size:14px;color:#374151"></div>
       </div>
 
     </div>
+    <!-- END RIGHT-TOP -->
 
-    <!-- Next row: Page-time predictor & big heatmap -->
+
+    <!-- HEATMAP + PAGE PREDICTION -->
     <div style="display:grid;grid-template-columns:1fr 360px;gap:18px">
 
-      <!-- wide: (reusing heatmap larger view) -->
+      <!-- BIG HEATMAP -->
       <div class="card">
         <h3>Yearly Reading Heatmap</h3>
-        <div id="bigHeatmap" style="overflow:auto"></div>
+        <div id="bigHeatmap"></div>
       </div>
 
-      <!-- side predictor -->
+      <!-- PAGE PREDICTION -->
       <div class="card predictor">
         <h3>Page-Time Prediction</h3>
+
         <div>
           <label>Pages read today</label>
-          <input id="pagesToday" type="number" min="0" value="30" />
+          <input id="pagesToday" type="number" value="30">
         </div>
+
         <div>
           <label>Total pages of book</label>
-          <input id="totalPages" type="number" min="1" value="300" />
+          <input id="totalPages" type="number" value="300">
         </div>
+
         <div>
-          <label>Reading speed (pages / minute)</label>
-          <input id="speed" type="number" min="0.01" step="0.01" value="0.5" />
+          <label>Reading speed (pages/min)</label>
+          <input id="speed" type="number" step="0.1" value="0.5">
         </div>
 
-        <div style="margin-top:8px">
-          <button class="btn" onclick="predictFinish()">Predict finish time</button>
-        </div>
+        <button class="btn" onclick="predictFinish()" style="margin-top:10px">Predict</button>
 
-        <div style="margin-top:12px">
-          <div class="big" id="predictionText" style="font-size:16px"></div>
-          <div style="margin-top:8px;color:#6b7280;font-size:13px" id="predictionDetails"></div>
-        </div>
+        <div id="predictionText" style="font-size:16px;margin-top:10px;font-weight:600"></div>
+        <div id="predictionDetails" style="font-size:13px;color:#6b7280;margin-top:6px"></div>
       </div>
 
     </div>
 
   </div>
+  <!-- END RIGHT COLUMN -->
 </div>
+<!-- ===================================================== -->
+<!-- =============== JAVASCRIPT SECTION =================== -->
+<!-- ===================================================== -->
 
 <script>
-/* ----------------- Mood Pie (Chart.js) ----------------- */
+/* --------------------- MOOD PIE CHART ---------------------- */
 const moodCtx = document.getElementById('moodPie').getContext('2d');
+
 let moodData = {
   labels: ['Happy','Calm','Motivated','Tired','Stressed','Sleepy'],
-  datasets:[{ data: [12,8,20,5,3,2], backgroundColor: ['#facc15','#60a5fa','#34d399','#f97316','#fb7185','#94a3b8'] }]
+  datasets:[{
+    data: [12, 8, 20, 5, 3, 2],
+    backgroundColor: ['#facc15','#60a5fa','#34d399','#f97316','#fb7185','#94a3b8']
+  }]
 };
+
 const moodPie = new Chart(moodCtx, {
   type: 'doughnut',
   data: moodData,
   options: {
-    plugins:{legend:{position:'bottom'}},
-    onClick: (evt, elements) => {
-      if (elements.length) {
-        const idx = elements[0].index;
-        const label = moodData.labels[idx];
-        setMood(label);
-      }
-    }
+    plugins:{ legend:{ position:'bottom' } }
   }
 });
-function setMood(label){
-  document.getElementById('curMood').textContent = label;
-  // bump one value slightly for demo + update chart
-  const idx = moodData.labels.indexOf(label);
-  if (idx>=0) moodData.datasets[0].data[idx] += 1;
-  moodPie.update();
+
+function setMood(mood){
+  document.getElementById("curMood").textContent = mood;
+
+  let index = moodData.labels.findIndex(l => mood.includes(l));
+  if(index >= 0){
+    moodData.datasets[0].data[index] += 1;
+    moodPie.update();
+  }
 }
 
-/* -------------- Computer Science Search DB -------------- */
+
+/* --------------------- BOOK DATA ---------------------- */
 const csBooks = [
-  { id:1, title:"Introduction to Algorithms (CLRS)", author:"Cormen et al.", pages:1312 },
+  { id:1, title:"Introduction to Algorithms (CLRS)", author:"Cormen", pages:1312 },
   { id:2, title:"Operating System Concepts", author:"Silberschatz", pages:976 },
   { id:3, title:"Computer Networks", author:"Tanenbaum", pages:880 },
   { id:4, title:"Database System Concepts", author:"Korth", pages:1184 },
-  { id:5, title:"Data Structures & Algorithms in Java", author:"Lafore", pages:720 },
-  { id:6, title:"Let Us C", author:"Y. Kanetkar", pages:700 },
-  { id:7, title:"Python Crash Course", author:"E. Matthes", pages:544 }
+  { id:5, title:"Let Us C", author:"Yashwant Kanetkar", pages:700 },
+  { id:6, title:"Python Crash Course", author:"Eric Matthes", pages:544 }
 ];
 
-const searchInput = document.getElementById('searchInput');
-const searchResults = document.getElementById('searchResults');
-searchInput.addEventListener('input', () => {
-  const q = searchInput.value.trim().toLowerCase();
-  searchResults.innerHTML = '';
-  if (!q) return;
-  const filtered = csBooks.filter(b => b.title.toLowerCase().includes(q) || (b.author && b.author.toLowerCase().includes(q)));
-  filtered.forEach(b => {
-    const div = document.createElement('div');
-    div.className = 'result-item';
-    div.innerHTML = `<strong>${b.title}</strong><br><small>${b.author} • ${b.pages} pages</small>`;
-    div.onclick = () => openBookInternal(b);
+
+/* ---------------------- SEARCH ------------------------ */
+const searchInput = document.getElementById("searchInput");
+const searchResults = document.getElementById("searchResults");
+
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.toLowerCase();
+  searchResults.innerHTML = "";
+
+  if(!q.trim()) return;
+
+  let results = csBooks.filter(b => 
+    b.title.toLowerCase().includes(q) || 
+    b.author.toLowerCase().includes(q)
+  );
+
+  results.forEach(book => {
+    const div = document.createElement("div");
+    div.className = "result-item";
+    div.innerHTML = `<b>${book.title}</b><br><small>${book.author}</small>`;
+    div.onclick = () => openBookInternal(book);
     searchResults.appendChild(div);
   });
 });
 
+
+/* ---------------------- BOOK DETAILS + CHAPTERS ------------------------ */
 function openBookInternal(book){
-  // open internal read page route
-  // if you use Flask route /read-book/<id>, it will open there
-  window.location.href = `/read-book/${book.id}`;
-}
-
-/* ----------------- QR Scanner ----------------- */
-let scanner = null;
-function startScanner(){
-  if (scanner) { scanner.render(onScanSuccess, onScanError); return; }
-  scanner = new Html5Qrcode("reader");
-  Html5Qrcode.getCameras().then(devices => {
-    const cameraId = devices && devices.length ? devices[0].id : null;
-    scanner.start(cameraId, { fps:10, qrbox:250 }, onScanSuccess, onScanError)
-      .catch(err => { document.getElementById('scanDetails').innerText = 'Camera error: ' + err; });
-  }).catch(err => {
-    document.getElementById('scanDetails').innerText = 'No camera: ' + err;
-  });
-}
-function stopScanner(){
-  if (!scanner) return;
-  scanner.stop().then(() => scanner.clear()).catch(()=>{});
-}
-async function onScanSuccess(decodedText, decodedResult){
-  // For demo we try treat text as isbn or title
-  stopScanner();
-  document.getElementById('scanDetails').innerText = 'Scanned: ' + decodedText;
-  // Try to find a matching CS book by id/title
-  const t = decodedText.toLowerCase();
-  const found = csBooks.find(b => b.title.toLowerCase().includes(t) || (''+b.id)===t );
-  if (found) {
-    setTimeout(()=> openBookInternal(found), 600);
-  } else {
-    // show as searched item
-    const div = document.createElement('div');
-    div.className = 'result-item';
-    div.innerHTML = `<strong>${decodedText}</strong><br><small>Scanned text — try search</small>`;
-    searchResults.prepend(div);
-  }
-}
-function onScanError(err){ /* ignore quietly */ }
-
-/* --------------- Heatmap generation (demo data) --------------- */
-/* We will create a 365-cell grid arranged in 53 columns (weeks) like GitHub */
-function makeHeatData(){
-  // Generate demo minutes read per day (0..120)
-  const days = 365;
-  const arr = new Array(days).fill(0).map(()=> Math.floor(Math.random()*100)); // minutes
-  return arr;
-}
-const heatData = makeHeatData();
-
-// small heatmap (compact)
-function renderHeatmapSmall(){
-  const container = document.getElementById('heatmap');
-  container.innerHTML = '';
-  // show weeks horizontally — we will show as columns of 7 vertical cells simplified
-  const cols = 53;
-  const weeks = [];
-  for (let w=0; w<cols; w++){
-    const col = document.createElement('div');
-    col.style.display='flex';col.style.flexDirection='column';col.style.gap='4px';
-    // pick 7 days for this column
-    for (let d=0; d<7; d++){
-      const idx = w*7 + d;
-      const cell = document.createElement('div');
-      const minutes = heatData[idx] || 0;
-      cell.className='heat-cell';
-      cell.style.background = heatColor(minutes);
-      cell.title = `Day ${idx+1}: ${minutes} min`;
-      col.appendChild(cell);
-    }
-    container.appendChild(col);
-  }
-}
-
-// Big heatmap, grid of 52-53 columns by 7 rows
-function renderHeatmapBig(){
-  const cont = document.getElementById('bigHeatmap');
-  cont.innerHTML = '';
-  const grid = document.createElement('div');
-  grid.className = 'heat-grid';
-  // create 365 cells
-  for (let i=0;i<365;i++){
-    const cell = document.createElement('div');
-    cell.className = 'heat-cell';
-    const val = heatData[i] || 0;
-    cell.style.background = heatColor(val);
-    cell.title = `Day ${i+1}: ${val} minutes`;
-    grid.appendChild(cell);
-  }
-  cont.appendChild(grid);
-}
-function heatColor(minutes){
-  if (minutes <= 0) return '#f3f4f6';
-  if (minutes < 10) return '#dbeafe';
-  if (minutes < 30) return '#93c5fd';
-  if (minutes < 60) return '#60a5fa';
-  return '#1e3a8a';
-}
-
-/* ----------------- Page-Time Prediction ----------------- */
-function predictFinish(){
-  const pagesToday = Number(document.getElementById('pagesToday').value) || 0;
-  const totalPages = Number(document.getElementById('totalPages').value) || 0;
-  const speed = Number(document.getElementById('speed').value) || 0.5; // pages per minute
-
-  // derive average daily reading minutes from heatData last 7 days:
-  const last7 = heatData.slice(Math.max(0, heatData.length - 7));
-  const avgMinutes = last7.reduce((s,a)=>s+a,0) / (last7.length || 1);
-  const predictedPagesPerDay = avgMinutes * speed;
-
-  // if user provided pagesToday, we can blend: we compute a new avg = (predictedPagesPerDay + pagesToday)/2
-  const blended = (predictedPagesPerDay + (pagesToday || predictedPagesPerDay)) / 2;
-
-  const remaining = Math.max(0, totalPages - pagesToday);
-  let days = Infinity;
-  if (blended > 0) days = Math.ceil(remaining / blended);
-  const textEl = document.getElementById('predictionText');
-  const details = document.getElementById('predictionDetails');
-
-  if (!totalPages || totalPages <= pagesToday) {
-    textEl.textContent = "You're done or invalid total pages.";
-    details.textContent = "";
-    return;
-  }
-  if (!isFinite(days)) {
-    textEl.textContent = "Can't predict (no reading speed data).";
-    details.textContent = "Try entering pages read today or adjust reading speed.";
-    return;
-  }
-
-  textEl.textContent = `At your current speed, you'll finish this book in ${days} day${days>1?'s':''}.`;
-  details.textContent = `Based on avg ${Math.round(predictedPagesPerDay*10)/10} pages/day (from recent activity) and today's ${pagesToday} pages.`;
-}
-
-/* --------------- Init render --------------- */
-renderHeatmapSmall();
-renderHeatmapBig();
-
-/* Chart: optionally animate based on mood data updated above */
-renderChart();
-
-/* helper: renderChart definition moved below to keep code readable */
-function renderChart(){
-  // update moodPie already created earlier; re-draw label counts demo handled
-  // nothing else needed here
-}
-
-/* Expose some functions for console testing */
-window.predictFinish = predictFinish;
-window.startScanner = startScanner;
-window.stopScanner = stopScanner;
-window.openBookInternal = openBookInternal;
-</script>
-
-</body>
-</html>
+  searchResults.innerHTML = `
+    <div style="padding:14px;background:white;border-radius:12px;">
+      <h2>${bo
