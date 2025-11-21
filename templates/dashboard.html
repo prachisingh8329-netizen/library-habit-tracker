@@ -20,10 +20,10 @@
     }
     *{box-sizing:border-box;font-family:Inter,system-ui,'Poppins',sans-serif}
 
-    /* ✨ Modern Bookshelf Background (Option B) */
+    /* ⭐ Your Background Image */
     body{
       margin:0;
-      background-image:url('https://i.postimg.cc/j2fvLFNG/white-bookshelf-bg.jpg');
+      background-image:url('/mnt/data/OIP (1).jpg');
       background-size:cover;
       background-position:center;
       background-attachment:fixed;
@@ -32,42 +32,58 @@
     }
 
     .container{max-width:900px;margin:0 auto;}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;background:rgba(255,255,255,0.9);padding:14px;border-radius:12px;backdrop-filter:blur(6px);}
+    header{
+      display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:18px;
+      background:rgba(255,255,255,0.85);
+      padding:14px;border-radius:12px;
+      backdrop-filter:blur(8px);
+    }
     h1{font-size:22px;margin:0;font-weight:600}
 
     .card{
-      background:rgba(255,255,255,0.92);
+      background:rgba(255,255,255,0.90);
       border-radius:var(--radius);
       padding:16px;
       box-shadow:var(--shadow);
       margin-bottom:14px;
-      backdrop-filter:blur(8px);
+      backdrop-filter:blur(6px);
     }
     label{display:block;margin-bottom:6px;color:var(--muted);font-size:14px}
     select,input[type="text"],input[type="number"]{
-      width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;margin-bottom:8px;background:rgba(255,255,255,0.85);
+      width:100%;padding:10px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;margin-bottom:8px;background:white;
     }
+
     .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
     .btn-ghost{background:transparent;color:var(--accent);border:1px solid #dbeafe;padding:8px 10px;border-radius:8px;cursor:pointer}
     .small{font-size:13px;padding:6px 10px}
     .row{display:flex;gap:10px}
-    .result{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:8px;border:1px solid #f1f5f9;background:#fcfdff;margin-bottom:8px}
+    .result{
+      display:flex;justify-content:space-between;align-items:center;padding:10px;
+      border-radius:8px;border:1px solid #f1f5f9;background:#fcfdff;margin-bottom:8px
+    }
     .meta{color:var(--muted);font-size:13px}
 
-    /* 📅 Heatmap */
+    /* Heatmap */
     .heat-grid { display:grid; grid-template-columns: repeat(53, 9px); gap:4px; padding:6px; }
     .heat-cell{width:9px;height:9px;border-radius:2px;background:#eef2ff;border:1px solid rgba(15,23,42,0.03)}
 
-    /* 🔥 Streak Controls */
-    .streak-controls{display:flex;align-items:center;gap:12px;margin-top:10px}
+    /* ⭐ Streak Controls */
+    .streak-controls{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:18px;
+      margin-top:14px
+    }
     .streak-btn{
-      width:32px;height:32px;font-size:20px;font-weight:bold;
+      width:36px;height:36px;font-size:22px;font-weight:bold;
       display:flex;justify-content:center;align-items:center;
-      border-radius:8px;border:1px solid #d0d7e3;
+      border-radius:10px;border:1px solid #cbd5e1;
       background:white;color:#334155;cursor:pointer;
       transition:0.2s;
     }
-    .streak-btn:hover{background:#e5edff}
+    .streak-btn:hover{background:#e0eaff}
 
     @media (max-width:640px){
       .row{flex-direction:column}
@@ -96,14 +112,14 @@
       <option>😤 Stressed</option>
       <option>😴 Sleepy</option>
     </select>
-    <div style="font-size:13px;color:var(--muted)">Selected: <b id="feelingNow">—</b></div>
+    <div class="meta">Selected: <b id="feelingNow">—</b></div>
   </div>
 
   <!-- SEARCH -->
   <div class="card">
     <label>Search Computer Science Books</label>
     <div class="row">
-      <input id="searchBox" type="text" placeholder="e.g. algorithms, OS, CN, DBMS" />
+      <input id="searchBox" type="text" placeholder="e.g. algorithms, OS, DBMS" />
       <button class="btn small" onclick="doSearch()">Search</button>
     </div>
     <div id="searchResults" style="margin-top:10px"></div>
@@ -126,17 +142,18 @@
     <div id="scanInfo" class="meta" style="margin-top:6px"></div>
   </div>
 
-  <!-- STREAK -->
+  <!-- ⭐ STREAK SECTION -->
   <div class="card">
     <label>Reading Streak</label>
-    <div style="font-size:22px;font-weight:700" id="streakCount">0 days</div>
-    <div class="meta" id="totalMins">0 minutes total</div>
+    <div style="font-size:24px;font-weight:700;text-align:center" id="streakCount">0 days</div>
+    <div class="meta" style="text-align:center" id="totalMins">0 minutes total</div>
 
     <div class="streak-controls">
       <div class="streak-btn" onclick="decStreak()">−</div>
-      <button class="btn small" onclick="logTodayMinutesPrompt()">Log Today’s Minutes</button>
       <div class="streak-btn" onclick="incStreak()">+</div>
     </div>
+
+    <button class="btn small" style="margin-top:12px;width:100%" onclick="logTodayMinutesPrompt()">Log Today’s Minutes</button>
   </div>
 
   <!-- HEATMAP -->
@@ -149,7 +166,7 @@
   <div class="card">
     <label>AI Summary Generator</label>
     <div class="row">
-      <input id="summaryBookId" type="number" placeholder="Book ID (e.g. 1)">
+      <input id="summaryBookId" type="number" placeholder="Book ID">
       <button class="btn small" onclick="generateSummary()">Generate</button>
     </div>
     <div id="summaryResult" class="meta"></div>
@@ -158,13 +175,12 @@
   <!-- TIMER -->
   <div class="card">
     <label>Read-Aloud / Focus Timer</label>
-    <div style="font-size:22px;font-weight:700" id="timerDisplay">00:00:00</div>
+    <div style="font-size:24px;font-weight:700;text-align:center" id="timerDisplay">00:00:00</div>
     <div class="row" style="margin-top:8px">
       <button class="btn small" onclick="startTimer()">Start</button>
       <button class="btn-ghost small" onclick="pauseTimer()">Pause</button>
       <button class="btn-ghost small" onclick="stopTimer()">Stop</button>
     </div>
-    <div class="meta" style="margin-top:5px">Adds minutes to streak automatically</div>
   </div>
 
 </div>
@@ -191,8 +207,7 @@ async function doSearch(){
       <div class="result">
         <div><b>${b.title}</b><br><span class="meta">${b.author}</span></div>
         <button class="btn small" onclick="location.href='/read-book/${b.id}'">Read</button>
-      </div>
-    `;
+      </div>`;
   });
 }
 
@@ -203,7 +218,6 @@ async function startScanner(){
   scanner=new Html5Qrcode("reader");
   const cams=await Html5Qrcode.getCameras();
   if(!cams.length) return;
-
   scanner.start(cams[0].id,{fps:10,qrbox:200},qr=>{
     document.getElementById("scanInfo").textContent="Scanned: "+qr;
     if(/^\d+$/.test(qr)) location.href="/read-book/"+qr;
@@ -216,21 +230,20 @@ function scanFromFile(e){
   const file=e.target.files[0];
   if(!file)return;
   const qr=new Html5Qrcode("reader");
-  qr.scanFile(file,true).then(dec=>{
-    document.getElementById("scanInfo").textContent="Scanned: "+dec;
+  qr.scanFile(file,true).then(code=>{
+    document.getElementById("scanInfo").textContent="Scanned: "+code;
   });
 }
 
-/* HEATMAP + STREAK */
-let heatData=Array.from({length:365},()=>Math.floor(Math.random()*10));
+/* ⭐ HEATMAP + REAL STREAK + MANUAL CONTROL */
+let heatData=Array(365).fill(0);
 
 function heatColor(m){
   if(m<=0)return"#eef2ff";
-  if(m<10)return"#c7d2fe";
-  if(m<20)return"#818cf8";
+  if(m<15)return"#c7d2fe";
+  if(m<30)return"#818cf8";
   return"#4338ca";
 }
-
 function getDayOfYear(d){
   const s=new Date(d.getFullYear(),0,0);
   return Math.floor((d-s)/(1000*60*60*24));
@@ -259,19 +272,18 @@ function computeStreak(){
     heatData.reduce((a,b)=>a+b,0)+" minutes total";
 }
 
-/* Manual streak adjust */
+/* ⭐ Manual Streak Change */
 function incStreak(){
-  let today=getDayOfYear(new Date());
-  heatData[today]=(heatData[today]||0)+20;
+  let d=getDayOfYear(new Date());
+  heatData[d]=(heatData[d]||0)+30;
   renderHeat(); computeStreak();
 }
 function decStreak(){
-  let today=getDayOfYear(new Date());
-  heatData[today]=Math.max(0,(heatData[today]||0)-20);
+  let d=getDayOfYear(new Date());
+  heatData[d]=Math.max(0,(heatData[d]||0)-30);
   renderHeat(); computeStreak();
 }
 
-/* Log Today */
 function logTodayMinutesPrompt(){
   let m=parseInt(prompt("Minutes read today?","25"));
   if(!m||m<=0)return;
@@ -280,15 +292,13 @@ function logTodayMinutesPrompt(){
   renderHeat(); computeStreak();
 }
 
-/* AI SUMMARY */
+/* SUMMARY */
 function generateSummary(){
   let id=document.getElementById("summaryBookId").value;
   let out=document.getElementById("summaryResult");
   if(!id){ out.textContent="Enter Book ID"; return; }
-  out.textContent="Generating summary...";
-  setTimeout(()=>{
-    out.textContent="Short summary: This book explains concepts with simple clarity. (Demo)";
-  },800);
+  out.textContent="Generating...";
+  setTimeout(()=> out.textContent="Short summary (demo): Clear explanation of concepts.", 700);
 }
 
 /* TIMER */
@@ -301,30 +311,23 @@ function format(s){
 }
 function startTimer(){
   if(interval)return;
-  interval=setInterval(()=>{
-    tSec++; document.getElementById("timerDisplay").textContent=format(tSec);
-  },1000);
+  interval=setInterval(()=>{ tSec++; document.getElementById("timerDisplay").textContent=format(tSec); },1000);
 }
-function pauseTimer(){
-  clearInterval(interval); interval=null;
-}
+function pauseTimer(){ clearInterval(interval); interval=null; }
 function stopTimer(){
   clearInterval(interval); interval=null;
-
   let mins=Math.floor(tSec/60);
   if(mins>0){
     let d=getDayOfYear(new Date());
     heatData[d]=(heatData[d]||0)+mins;
     renderHeat(); computeStreak();
   }
-
   tSec=0;
   document.getElementById("timerDisplay").textContent="00:00:00";
 }
 
 /* INIT */
-renderHeat();
-computeStreak();
+renderHeat(); computeStreak();
 </script>
 
 </body>
