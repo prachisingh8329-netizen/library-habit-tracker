@@ -1,38 +1,35 @@
-from flask import (
-    Flask, render_template, request,
-    jsonify, session, redirect, url_for, abort
-)
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 
 app = Flask(__name__)
-app.secret_key = "change-this-secret-key"   # koi random string rakh lena
+app.secret_key = "my-secret-key-123"
 
 DB_NAME = "users.db"
 
-# ---------- USER DATABASE BANANA ----------
-def init_db():
+# ---------------- DATABASE CREATE ----------------
+def create_db():
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL
+            name TEXT,
+            email TEXT UNIQUE,
+            password TEXT
         )
     """)
     conn.commit()
     conn.close()
 
-init_db()
+create_db()
 
-# ---------- PAGES ----------
+# ---------------- ROUTES ----------------
 @app.route("/")
 def home():
     if "user_id" in session:
-        return redirect(url_for("dashboard"))
-    return redirect(url_for("login_page"))
+        return redirect("/dashboard")
+    return redirect("/login")
 
 @app.route("/signup")
 def signup_page():
@@ -45,71 +42,63 @@ def login_page():
 @app.route("/dashboard")
 def dashboard():
     if "user_id" not in session:
-        return redirect(url_for("login_page"))
-    # yahan tum apna dashboard.html use kar rahi ho
-    return render_template("dashboard.html", user_name=session.get("user_name"))
+        return redirect("/login")
+    return render_template("dashboard.html", username=session.get("username"))
 
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("login_page"))
+    return redirect("/login")
 
-# ---------- SIGNUP API ----------
+# ---------------- API: SIGNUP ----------------
 @app.route("/api/signup", methods=["POST"])
-def api_signup():
-    data = request.get_json() or {}
-    name = data.get("name", "").strip()
-    email = data.get("email", "").strip().lower()
-    password = data.get("password", "")
+def signup():
+    data = request.get_json()
+    name = data.get("name")
+    email = data.get("email")
+    password = data.get("password")
 
     if not name or not email or not password:
-        return jsonify({"ok": False, "message": "All fields are required."}), 400
+        return jsonify({"success": False, "message": "All fields required"})
 
     password_hash = generate_password_hash(password)
 
     try:
         conn = sqlite3.connect(DB_NAME)
         cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO users (name, email, password_hash) VALUES (?,?,?)",
-            (name, email, password_hash),
-        )
+        cur.execute("INSERT INTO users (name, email, password) VALUES (?,?,?)",
+                    (name, email, password_hash))
         conn.commit()
         conn.close()
-    except sqlite3.IntegrityError:
-        return jsonify({"ok": False, "message": "Email already registered."}), 400
+        return jsonify({"success": True, "message": "Signup success"})
+    except:
+        return jsonify({"success": False, "message": "Email already exists"})
 
-    return jsonify({"ok": True, "message": "Signup successful. Please login."})
-
-# ---------- LOGIN API ----------
+# ---------------- API: LOGIN ----------------
 @app.route("/api/login", methods=["POST"])
-def api_login():
-    data = request.get_json() or {}
-    email = data.get("email", "").strip().lower()
-    password = data.get("password", "")
-
-    if not email or not password:
-        return jsonify({"ok": False, "message": "Email and password are required."}), 400
+def login():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
 
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    cur.execute("SELECT id, name, password_hash FROM users WHERE email = ?", (email,))
-    row = cur.fetchone()
+    cur.execute("SELECT id,name,password FROM users WHERE email=?", (email,))
+    user = cur.fetchone()
     conn.close()
 
-    if not row:
-        return jsonify({"ok": False, "message": "Invalid email or password."}), 401
+    if not user:
+        return jsonify({"success": False, "message": "Invalid email or password"})
 
-    user_id, name, pwd_hash = row
+    if not check_password_hash(user[2], password):
+        return jsonify({"success": False, "message": "Wrong password"})
 
-    if not check_password_hash(pwd_hash, password):
-        return jsonify({"ok": False, "message": "Invalid email or password."}), 401
+    session["user_id"] = user[0]
+    session["username"] = user[1]
 
-    # login success
-    session["user_id"] = user_id
-    session["user_name"] = name
-    return jsonify({"ok": True, "message": "Login successful."})
+    return jsonify({"success": True})
 
-if _name_ == "_main_":
+# ---------------- RUN ----------------
+if __name__ == "__main__":
     app.run(debug=True)
 
