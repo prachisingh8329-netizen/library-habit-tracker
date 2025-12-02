@@ -7,379 +7,638 @@
 
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <!-- QR Scanner -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-    :root {
-      --card: #ffffff;
-      --muted: #475569;
-      --accent: #2563eb;
-      --radius: 12px;
-      --shadow: 0 8px 24px rgba(15,23,42,0.06);
+    :root{
+      --card:#ffffff;
+      --muted:#475569;
+      --accent:#2563eb;
+      --radius:12px;
+      --shadow:0 8px 24px rgba(15,23,42,0.06);
     }
-    * { box-sizing:border-box; font-family:Inter,system-ui,'Poppins',sans-serif }
+    *{box-sizing:border-box;font-family:Inter,'Poppins',sans-serif}
 
-    /* ⭐ Library Background */
     body{
       margin:0;
-      background-image:url('https://i.postimg.cc/SN0njHkv/library-wood.jpg');
-      background-size:cover;
-      background-position:center;
-      background-attachment:fixed;
+      background:#f8fafc;
       padding:20px;
       color:#0f172a;
     }
 
-    .container{max-width:900px;margin:0 auto;}
-
+    .container{max-width:1100px;margin:0 auto;}
     header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:18px;
-      background:rgba(255,255,255,0.88);
-      padding:14px;
-      border-radius:12px;
-      backdrop-filter:blur(8px);
+      display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:18px;background:white;padding:16px;border-radius:12px;
+      box-shadow:var(--shadow);
     }
-
-    h1{font-size:22px;margin:0;font-weight:600}
+    h1{margin:0;font-size:22px;font-weight:700}
+    .greeting{font-size:14px;color:var(--muted)}
 
     .card{
-      background:rgba(255,255,255,0.92);
-      border-radius:var(--radius);
-      padding:16px;
-      margin-bottom:14px;
-      box-shadow:var(--shadow);
-      backdrop-filter:blur(6px);
+      background:white;border-radius:var(--radius);padding:16px;
+      margin-bottom:16px;box-shadow:var(--shadow);
     }
-
     label{display:block;margin-bottom:6px;color:var(--muted);font-size:14px}
 
-    select,input[type="text"],input[type="number"]{
-      width:100%;
-      padding:10px;
-      border-radius:8px;
-      border:1px solid #d1d5db;
-      background:white;
-      margin-bottom:8px;
-      font-size:14px;
+    input,select{
+      width:100%;padding:9px 10px;border-radius:8px;
+      border:1px solid #d1d5db;font-size:14px;
     }
+    textarea{width:100%;padding:9px 10px;border-radius:8px;border:1px solid #d1d5db;font-size:14px;}
+
+    .row{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+    .col{flex:1;min-width:230px}
 
     .btn{
-      background:var(--accent);
-      color:white;
-      border:none;
-      padding:8px 12px;
-      border-radius:8px;
-      cursor:pointer;
+      background:var(--accent);color:white;border:none;border-radius:8px;
+      padding:8px 12px;font-size:13px;cursor:pointer;
     }
-
-    .btn.small{font-size:13px;padding:6px 10px}
-
     .btn-ghost{
-      background:transparent;
-      color:var(--accent);
-      border:1px solid #dbeafe;
-      border-radius:8px;
-      padding:6px 10px;
-      cursor:pointer;
+      background:transparent;color:var(--accent);
+      border:1px solid #c7d2fe;border-radius:8px;
+      padding:6px 10px;font-size:13px;cursor:pointer;
     }
-
-    .row{display:flex;gap:10px}
-
-    .result{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:10px;
-      background:#fcfdff;
-      border:1px solid #e5e7eb;
-      border-radius:8px;
-      margin-bottom:8px;
-    }
-
     .meta{font-size:13px;color:var(--muted)}
 
-    /* ⭐ Calendar */
-    #calendar div{
-      padding:10px;
-      border-radius:8px;
-      cursor:pointer;
-      background:white;
-      transition:0.2s;
+    /* Calendar */
+    #calendar{
+      display:grid;grid-template-columns:repeat(7,1fr);
+      gap:6px;margin-top:8px;font-size:12px;
     }
-    #calendar div:hover{
-      background:#dbeafe;
+    .cal-cell{
+      padding:8px;border-radius:8px;background:#e5e7eb;text-align:center;cursor:pointer;
+    }
+    .cal-cell.header{background:#cbd5f5;font-weight:600}
+    .cal-cell.active{outline:2px solid #2563eb;background:#dbeafe}
+
+    /* Stats badges */
+    .badge{
+      display:inline-flex;align-items:center;gap:6px;
+      background:#eff6ff;border-radius:999px;
+      padding:4px 10px;font-size:12px;color:#1e40af;
     }
 
-    @media(max-width:640px){
-      .row{flex-direction:column}
+    /* Progress bars */
+    .progress{
+      width:100%;height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:4px;
+    }
+    .progress-inner{
+      height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);
+      width:0%;transition:width 0.3s;
+    }
+
+    /* Weekly card list */
+    .stat-row{display:flex;justify-content:space-between;font-size:13px;margin-top:4px}
+
+    /* Chapter progress */
+    .chip{
+      display:inline-block;margin-right:6px;margin-top:4px;
+      padding:4px 8px;border-radius:999px;font-size:12px;
+      background:#f1f5f9;color:#0f172a;
+    }
+
+    @media(max-width:760px){
+      header{flex-direction:column;align-items:flex-start;gap:6px}
     }
   </style>
 </head>
 <body>
-
 <div class="container">
 
   <!-- HEADER -->
   <header>
-    <h1>📚 Library Habit Tracker</h1>
-    <div style="color:var(--muted)">Welcome back, Reader!</div>
+    <div>
+      <h1>📚 Library Habit Tracker</h1>
+      <div class="greeting" id="greetingText">Welcome back!</div>
+    </div>
+    <div style="text-align:right">
+      <div class="badge">
+        🏆 Reading Score: <span id="readingScore">0</span>
+      </div><br>
+      <span class="meta" id="streakText">Streak: 0 days</span>
+    </div>
   </header>
 
-  <!-- FEELINGS -->
-  <div class="card">
-    <label>How are you feeling today?</label>
-    <select id="feeling">
-      <option>Select feeling</option>
-      <option>😊 Happy</option>
-      <option>😌 Calm</option>
-      <option>🤩 Motivated</option>
-      <option>😔 Tired</option>
-      <option>😤 Stressed</option>
-      <option>😴 Sleepy</option>
-    </select>
-    <div class="meta">Selected: <b id="feelingNow">—</b></div>
+  <!-- MOOD + MOTIVATION -->
+  <div class="row">
+    <div class="card col">
+      <label>How are you feeling today?</label>
+      <select id="feeling">
+        <option>Select feeling</option>
+        <option>😊 Happy</option>
+        <option>😌 Calm</option>
+        <option>🤩 Motivated</option>
+        <option>😔 Tired</option>
+        <option>😤 Stressed</option>
+        <option>😴 Sleepy</option>
+      </select>
+      <p class="meta">Suggestion: <b id="moodSuggestion">—</b></p>
+    </div>
+
+    <div class="card col">
+      <label>Daily Motivation</label>
+      <p class="meta" id="quoteText"></p>
+      <button class="btn-ghost" onclick="nextQuote()">New Quote</button>
+    </div>
   </div>
 
-  <!-- SEARCH -->
+  <!-- SEARCH + QR -->
+  <div class="row">
+    <div class="card col">
+      <label>Search Computer Science Books</label>
+      <div class="row">
+        <div class="col">
+          <input id="searchBox" placeholder="e.g. algorithms, OS, DBMS" />
+        </div>
+        <button class="btn small" onclick="doSearch()">Search</button>
+      </div>
+      <div id="searchResults" style="margin-top:8px;"></div>
+    </div>
+
+    <div class="card col">
+      <label>QR / ISBN Scanner</label>
+      <div class="row">
+        <button class="btn small" onclick="startScanner()">Start</button>
+        <button class="btn-ghost small" onclick="stopScanner()">Stop</button>
+      </div>
+      <div id="reader" style="margin-top:8px;height:140px;background:#020617;color:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px">
+        Camera preview
+      </div>
+      <div id="scanInfo" class="meta"></div>
+    </div>
+  </div>
+
+  <!-- GOALS + PREDICTION -->
+  <div class="row">
+    <div class="card col">
+      <label>🎯 Reading Goals</label>
+      <div class="row">
+        <div class="col">
+          <span class="meta">Daily Goal (minutes)</span>
+          <input id="dailyGoalInput" type="number" placeholder="e.g. 30" />
+        </div>
+        <div class="col">
+          <span class="meta">Weekly Goal (minutes)</span>
+          <input id="weeklyGoalInput" type="number" placeholder="e.g. 180" />
+        </div>
+      </div>
+      <button class="btn small" style="margin-top:6px" onclick="saveGoals()">Save Goals</button>
+
+      <div style="margin-top:10px">
+        <div class="stat-row">
+          <span class="meta">Today</span>
+          <span class="meta"><span id="todayMinutesLabel">0</span> / <span id="dailyGoalLabel">0</span> min</span>
+        </div>
+        <div class="progress"><div id="dailyProgressBar" class="progress-inner"></div></div>
+
+        <div class="stat-row">
+          <span class="meta">This Week</span>
+          <span class="meta"><span id="weekMinutesLabel">0</span> / <span id="weeklyGoalLabel">0</span> min</span>
+        </div>
+        <div class="progress"><div id="weeklyProgressBar" class="progress-inner"></div></div>
+      </div>
+    </div>
+
+    <div class="card col">
+      <label>📖 Page-Time Prediction</label>
+      <div class="row">
+        <div class="col">
+          <span class="meta">Total pages of book</span>
+          <input id="totalPages" type="number" placeholder="e.g. 300" />
+        </div>
+        <div class="col">
+          <span class="meta">Average pages per day</span>
+          <input id="pagesPerDay" type="number" placeholder="e.g. 20" />
+        </div>
+      </div>
+      <button class="btn small" style="margin-top:6px" onclick="predictFinish()">Predict Finish Time</button>
+      <p class="meta" id="predictionResult">Enter pages to get prediction.</p>
+    </div>
+  </div>
+
+  <!-- WEEKLY PERFORMANCE + CALENDAR + CHART -->
+  <div class="row">
+    <div class="card col">
+      <label>📊 Weekly Performance</label>
+      <div class="stat-row"><span class="meta">Total (7 days)</span><span class="meta" id="weeklyTotal">0 min</span></div>
+      <div class="stat-row"><span class="meta">Best Day</span><span class="meta" id="bestDayLabel">—</span></div>
+      <div class="stat-row"><span class="meta">Weak Day</span><span class="meta" id="weakDayLabel">—</span></div>
+      <div class="stat-row"><span class="meta">Average/Day</span><span class="meta" id="avgDayLabel">0 min</span></div>
+      <canvas id="weeklyChart" height="130" style="margin-top:10px"></canvas>
+    </div>
+
+    <div class="card col">
+      <label>📅 Calendar (current month)</label>
+      <div class="stat-row" style="margin-bottom:4px">
+        <button class="btn-ghost small" onclick="prevMonth()">◀</button>
+        <span class="meta" id="monthLabel"></span>
+        <button class="btn-ghost small" onclick="nextMonth()">▶</button>
+      </div>
+      <div id="calendar"></div>
+      <p class="meta" id="calendarInfo" style="margin-top:6px">Click a date to see minutes.</p>
+    </div>
+  </div>
+
+  <!-- CHAPTER PROGRESS + AI SUMMARY + TIMER -->
+  <div class="row">
+    <div class="card col">
+      <label>📚 Chapter Progress (manual)</label>
+      <div class="row">
+        <div class="col">
+          <span class="meta">Total chapters</span>
+          <input id="totalChapters" type="number" placeholder="e.g. 10" />
+        </div>
+        <div class="col">
+          <span class="meta">Completed chapters</span>
+          <input id="doneChapters" type="number" placeholder="e.g. 3" />
+        </div>
+      </div>
+      <button class="btn small" style="margin-top:6px" onclick="updateChapters()">Update</button>
+      <p class="meta" id="chapterInfo">No data yet.</p>
+      <div id="chapterChips"></div>
+    </div>
+
+    <div class="card col">
+      <label>🤖 AI Summary (demo)</label>
+      <div class="row">
+        <input id="summaryBookId" placeholder="Book ID (e.g. 1)" />
+        <button class="btn small" onclick="generateSummary()">Generate</button>
+      </div>
+      <p class="meta" id="summaryResult" style="margin-top:6px">Short summary will appear here (demo text).</p>
+    </div>
+  </div>
+
   <div class="card">
-    <label>Search Computer Science Books</label>
+    <label>⏱️ Focus / Read-Aloud Timer</label>
+    <h2 style="margin:6px 0" id="timerDisplay">00:00:00</h2>
     <div class="row">
-      <input id="searchBox" type="text" placeholder="e.g. algorithms, OS, DBMS" />
-      <button class="btn small" onclick="doSearch()">Search</button>
-    </div>
-    <div id="searchResults"></div>
-  </div>
-
-  <!-- QR -->
-  <div class="card">
-    <label>QR / ISBN Scanner</label>
-    <div class="row">
-      <button class="btn small" onclick="startScanner()">Start Scan</button>
-      <button class="btn-ghost small" onclick="stopScanner()">Stop</button>
-      <label class="btn-ghost small">
-        Upload QR
-        <input id="qrFile" type="file" accept="image/*" style="display:none" onchange="scanFromFile(event)">
-      </label>
-    </div>
-    <div id="reader" style="height:170px;background:#000;color:white;border-radius:8px;margin-top:10px;display:flex;justify-content:center;align-items:center;">Ready</div>
-    <div id="scanInfo" class="meta"></div>
-  </div>
-
-  <!-- ⭐ NEW MONTHLY CALENDAR -->
-  <div class="card">
-    <label style="font-size:18px;font-weight:600;">📅 Reading Calendar</label>
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
-      <button class="btn small" onclick="prevMonth()">◀</button>
-      <h3 id="monthLabel" style="margin:0;font-weight:600;"></h3>
-      <button class="btn small" onclick="nextMonth()">▶</button>
-    </div>
-
-    <div id="calendar" style="
-      display:grid;
-      grid-template-columns: repeat(7,1fr);
-      gap:6px;
-      margin-top:12px;">
-    </div>
-  </div>
-
-  <!-- ⭐ DAILY GRAPH -->
-  <div class="card">
-    <label style="font-size:18px;font-weight:600;">📊 Daily Reading Graph</label>
-    <canvas id="dayGraph" height="150"></canvas>
-    <div id="graphInfo" class="meta">Click a date to view details.</div>
-  </div>
-
-  <!-- AI SUMMARY -->
-  <div class="card">
-    <label>AI Summary Generator</label>
-    <div class="row">
-      <input id="summaryBookId" type="number" placeholder="Book ID">
-      <button class="btn small" onclick="generateSummary()">Generate</button>
-    </div>
-    <div id="summaryResult" class="meta"></div>
-  </div>
-
-  <!-- TIMER -->
-  <div class="card">
-    <label>Read-Aloud / Focus Timer</label>
-    <div id="timerDisplay" style="font-size:24px;font-weight:700;text-align:center;">00:00:00</div>
-
-    <div class="row" style="margin-top:10px;">
       <button class="btn small" onclick="startTimer()">Start</button>
       <button class="btn-ghost small" onclick="pauseTimer()">Pause</button>
-      <button class="btn-ghost small" onclick="stopTimer()">Stop</button>
+      <button class="btn-ghost small" onclick="stopTimer()">Stop & Add to Today</button>
     </div>
+    <p class="meta" style="margin-top:6px">When you stop, minutes are added to today's reading and update all stats.</p>
   </div>
 
 </div>
 
 <script>
-/* ------------------ FEELING ------------------ */
-document.getElementById("feeling").addEventListener("change", e=>{
-  document.getElementById("feelingNow").textContent = e.target.value;
+/* ========= GREETING & QUOTES ========= */
+function updateGreeting(){
+  const h = new Date().getHours();
+  let txt = "Welcome back!";
+  if(h<12) txt = "Good morning, keep learning ☀️";
+  else if(h<18) txt = "Good afternoon, great time to read 📖";
+  else txt = "Good evening, wind down with a book 🌙";
+  document.getElementById("greetingText").textContent = txt;
+}
+updateGreeting();
+
+const quotes = [
+  "Every page you read is an investment in yourself.",
+  "Small reading sessions daily > big reading once a month.",
+  "Books are silent teachers. Listen closely.",
+  "Your future self will thank you for reading today.",
+  "Reading is to the mind what exercise is to the body."
+];
+let quoteIndex = 0;
+function nextQuote(){
+  quoteIndex = (quoteIndex+1) % quotes.length;
+  document.getElementById("quoteText").textContent = quotes[quoteIndex];
+}
+nextQuote();
+
+/* ========= MOOD SUGGESTION ========= */
+const moodMap = {
+  "😊 Happy":"Try a challenging CS topic or a new algorithm book.",
+  "😌 Calm":"Read theory chapters slowly and take notes.",
+  "🤩 Motivated":"Aim to finish a full chapter or 40+ minutes.",
+  "😔 Tired":"Read light summaries or revision notes only.",
+  "😤 Stressed":"Pick short topics or diagrams, avoid heavy theory.",
+  "😴 Sleepy":"Do a 10-minute skim of key points."
+};
+document.getElementById("feeling").addEventListener("change",e=>{
+  const v = e.target.value;
+  document.getElementById("moodSuggestion").textContent = moodMap[v] || "—";
 });
 
-/* ------------------ SEARCH ------------------ */
+/* ========= SEARCH & READ ========= */
 async function doSearch(){
-  const q=document.getElementById("searchBox").value.trim();
-  const out=document.getElementById("searchResults");
+  const q = document.getElementById("searchBox").value.trim();
+  const out = document.getElementById("searchResults");
   if(!q){ out.innerHTML=""; return; }
+  out.innerHTML = "Searching...";
 
-  out.innerHTML="Searching...";
-
-  const res=await fetch("/api/search?q="+q);
-  const data=await res.json();
-
-  out.innerHTML="";
-  data.forEach(b=>{
-    out.innerHTML += `
-      <div class="result">
-        <div><b>${b.title}</b><br><span class="meta">${b.author}</span></div>
-        <button class="btn small" onclick="location.href='/read-book/${b.id}'">Read</button>
-      </div>`;
-  });
-}
-
-/* ------------------ QR SCAN ------------------ */
-let scanner=null;
-async function startScanner(){
-  if(scanner) return;
-  scanner=new Html5Qrcode("reader");
-  const cams=await Html5Qrcode.getCameras();
-  if(!cams.length) return;
-
-  scanner.start(cams[0].id,{fps:10,qrbox:200},qr=>{
-    document.getElementById("scanInfo").textContent="Scanned: "+qr;
-    if(/^\d+$/.test(qr)) location.href="/read-book/"+qr;
-  });
-}
-function stopScanner(){
-  if(scanner){ scanner.stop(); scanner.clear(); scanner=null; }
-}
-function scanFromFile(e){
-  const file=e.target.files[0];
-  if(!file)return;
-  const qr=new Html5Qrcode("reader");
-  qr.scanFile(file,true).then(code=>{
-    document.getElementById("scanInfo").textContent="Scanned: "+code;
-  });
-}
-
-/* ------------------ CALENDAR + GRAPH ------------------ */
-let today=new Date();
-let currentMonth=today.getMonth();
-let currentYear=today.getFullYear();
-let dayData={};
-
-function daysInMonth(m,y){ return new Date(y,m+1,0).getDate(); }
-
-function renderCalendar(){
-  const cal=document.getElementById("calendar");
-  const lbl=document.getElementById("monthLabel");
-
-  cal.innerHTML="";
-  lbl.textContent=today.toLocaleString("default",{month:"long"})+" "+currentYear;
-
-  const first=new Date(currentYear,currentMonth,1).getDay();
-  const total=daysInMonth(currentMonth,currentYear);
-
-  for(let i=0;i<first;i++) cal.innerHTML+="<div></div>";
-
-  for(let d=1;d<=total;d++){
-    let key=`${currentYear}-${currentMonth+1}-${d}`;
-    let bg = dayData[key] ? "background:#bfdbfe" : "";
-
-    cal.innerHTML += `
-      <div onclick="selectDate(${d})" style="${bg}">
-        ${d}
-      </div>`;
+  try{
+    const res = await fetch("/api/search?q="+encodeURIComponent(q));
+    const data = await res.json();
+    if(!Array.isArray(data) || data.length===0){ out.innerHTML="<p class='meta'>No results found.</p>"; return; }
+    out.innerHTML = "";
+    data.forEach(b=>{
+      out.innerHTML += `
+        <div style="margin-bottom:6px;padding:6px;border-radius:8px;border:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <b>${b.title}</b><br>
+            <span class="meta">${b.author || ""}</span>
+          </div>
+          <button class="btn small" onclick="location.href='/read-book/${b.id}'">Read</button>
+        </div>
+      `;
+    });
+  }catch(err){
+    console.error(err);
+    out.innerHTML = "<p class='meta'>Error during search.</p>";
   }
 }
 
-function prevMonth(){
-  currentMonth--;
-  if(currentMonth<0){ currentMonth=11; currentYear--; }
-  today=new Date(currentYear,currentMonth);
-  renderCalendar();
+/* ========= QR SCANNER ========= */
+let scanner = null;
+async function startScanner(){
+  if(scanner) return;
+  scanner = new Html5Qrcode("reader");
+  try{
+    const cams = await Html5Qrcode.getCameras();
+    if(!cams || !cams.length){
+      document.getElementById("scanInfo").textContent = "No camera found.";
+      return;
+    }
+    await scanner.start(cams[0].id,{fps:10,qrbox:150},decoded=>{
+      document.getElementById("scanInfo").textContent = "Scanned: "+decoded;
+      if(/^\d+$/.test(decoded)) location.href="/read-book/"+decoded;
+      else{
+        document.getElementById("searchBox").value = decoded;
+        doSearch();
+      }
+    });
+  }catch(e){
+    console.error(e);
+    document.getElementById("scanInfo").textContent = "Unable to start camera.";
+  }
+}
+function stopScanner(){
+  if(!scanner) return;
+  scanner.stop().then(()=>{scanner.clear();scanner=null;}).catch(()=>{scanner=null;});
 }
 
-function nextMonth(){
-  currentMonth++;
-  if(currentMonth>11){ currentMonth=0; currentYear++; }
-  today=new Date(currentYear,currentMonth);
-  renderCalendar();
+/* ========= READING DATA & GOALS ========= */
+// readingData: { "YYYY-MM-DD": minutes }
+let readingData = {};
+let dailyGoal = 0;
+let weeklyGoal = 0;
+
+function dateKey(d){
+  return d.toISOString().slice(0,10); // YYYY-MM-DD
 }
 
-let chart;
+function saveGoals(){
+  dailyGoal = parseInt(document.getElementById("dailyGoalInput").value)||0;
+  weeklyGoal = parseInt(document.getElementById("weeklyGoalInput").value)||0;
+  document.getElementById("dailyGoalLabel").textContent = dailyGoal;
+  document.getElementById("weeklyGoalLabel").textContent = weeklyGoal;
+  updateAllStats();
+}
 
-function selectDate(d){
-  let key=`${currentYear}-${currentMonth+1}-${d}`;
-  if(!dayData[key]) dayData[key]=Math.floor(Math.random()*60);
+/* add minutes to a given date */
+function addMinutesForDate(d, mins){
+  if(mins<=0) return;
+  const key = dateKey(d);
+  readingData[key] = (readingData[key]||0) + mins;
+}
 
-  let mins=dayData[key];
+/* get minutes for date */
+function getMinutesForDate(d){
+  const key = dateKey(d);
+  return readingData[key] || 0;
+}
 
-  document.getElementById("graphInfo").textContent =
-    `Reading on ${d}/${currentMonth+1}/${currentYear}: ${mins} minutes`;
+/* last 7 days array with labels and mins */
+function getLast7Days(){
+  const arr=[];
+  for(let i=6;i>=0;i--){
+    const d = new Date();
+    d.setDate(d.getDate()-i);
+    const label = d.toLocaleDateString('en',{weekday:'short'});
+    arr.push({date:d, label, mins:getMinutesForDate(d)});
+  }
+  return arr;
+}
 
-  const ctx=document.getElementById("dayGraph");
+/* compute streak: consecutive days ending today with mins>0 */
+function computeStreak(){
+  let streak=0;
+  const today=new Date();
+  for(let offset=0;offset<365;offset++){
+    const d = new Date();
+    d.setDate(today.getDate()-offset);
+    if(getMinutesForDate(d)>0) streak++;
+    else break;
+  }
+  return streak;
+}
 
-  if(chart) chart.destroy();
+/* reading score: simple formula based on total mins + streak */
+function computeScore(){
+  let total=0;
+  Object.values(readingData).forEach(v=>total+=v);
+  const streak = computeStreak();
+  return total + streak*10;
+}
 
-  chart=new Chart(ctx,{
-    type:"bar",
-    data:{
-      labels:["Reading Minutes"],
-      datasets:[{
-        data:[mins],
-        backgroundColor:"#2563eb",
-        borderRadius:10
-      }]
-    },
-    options:{ scales:{ y:{beginAtZero:true} } }
+/* update all UI stats */
+let weeklyChart = null;
+function updateAllStats(){
+  const todayDate = new Date();
+  const todayMin = getMinutesForDate(todayDate);
+
+  document.getElementById("todayMinutesLabel").textContent = todayMin;
+  document.getElementById("dailyGoalLabel").textContent = dailyGoal;
+
+  // daily progress
+  const dailyPercent = dailyGoal ? Math.min(100, (todayMin/dailyGoal)*100) : 0;
+  document.getElementById("dailyProgressBar").style.width = dailyPercent+"%";
+
+  // weekly data
+  const last7 = getLast7Days();
+  const weekTotal = last7.reduce((s,x)=>s+x.mins,0);
+  const avg = weekTotal/7;
+  let best = last7.reduce((a,b)=>a.mins>=b.mins?a:b);
+  let weak = last7.reduce((a,b)=>a.mins<=b.mins?a:b);
+
+  document.getElementById("weekMinutesLabel").textContent = weekTotal;
+  document.getElementById("weeklyGoalLabel").textContent = weeklyGoal;
+  const weekPercent = weeklyGoal ? Math.min(100,(weekTotal/weeklyGoal)*100) : 0;
+  document.getElementById("weeklyProgressBar").style.width = weekPercent+"%";
+
+  document.getElementById("weeklyTotal").textContent = weekTotal+" min";
+  document.getElementById("bestDayLabel").textContent = best.mins>0 ? `${best.label} (${best.mins} min)` : "—";
+  document.getElementById("weakDayLabel").textContent = weak.mins>0 ? `${weak.label} (${weak.mins} min)` : "—";
+  document.getElementById("avgDayLabel").textContent = avg.toFixed(1)+" min";
+
+  // streak + score
+  const streak = computeStreak();
+  document.getElementById("streakText").textContent = `Streak: ${streak} day(s)`;
+  document.getElementById("readingScore").textContent = computeScore();
+
+  // weekly chart with multi-color intensity bars
+  const labels = last7.map(x=>x.label);
+  const minsArr = last7.map(x=>x.mins);
+  const colors = minsArr.map(min=>{
+    if(!min || min<=0) return "#cbd5f5";
+    if(min<=15) return "#3b82f6";
+    if(min<=30) return "#8b5cf6";
+    if(min<=60) return "#ec4899";
+    return "#ef4444";
   });
+
+  const ctx = document.getElementById("weeklyChart");
+  if(weeklyChart) weeklyChart.destroy();
+  weeklyChart = new Chart(ctx,{
+    type:"bar",
+    data:{labels,datasets:[{data:minsArr,backgroundColor:colors,borderRadius:6}]},
+    options:{scales:{y:{beginAtZero:true}}}
+  });
+
+  // also re-render calendar since colors depend on minutes
+  renderCalendar();
 }
 
-renderCalendar();
+/* ========= PREDICTION ========= */
+function predictFinish(){
+  const total = parseInt(document.getElementById("totalPages").value)||0;
+  const perDay = parseInt(document.getElementById("pagesPerDay").value)||0;
+  const out = document.getElementById("predictionResult");
+  if(total<=0 || perDay<=0){
+    out.textContent = "Enter valid total pages and pages per day.";
+    return;
+  }
+  const days = Math.ceil(total/perDay);
+  out.textContent = `At your current speed, you'll finish this book in about ${days} day(s).`;
+}
 
-/* ------------------ SUMMARY ------------------ */
+/* ========= CALENDAR ========= */
+let calMonth = (new Date()).getMonth();
+let calYear = (new Date()).getFullYear();
+
+function renderCalendar(){
+  const cal = document.getElementById("calendar");
+  const label = document.getElementById("monthLabel");
+  if(!cal || !label) return; // in case early call
+
+  cal.innerHTML = "";
+  const firstDay = new Date(calYear,calMonth,1).getDay();
+  const daysInMonth = new Date(calYear,calMonth+1,0).getDate();
+  label.textContent = new Date(calYear,calMonth).toLocaleDateString('en',{month:'long',year:'numeric'});
+
+  const weekdays = ["S","M","T","W","T","F","S"];
+  weekdays.forEach(d=>{
+    const cell = document.createElement("div");
+    cell.textContent = d;
+    cell.className = "cal-cell header";
+    cal.appendChild(cell);
+  });
+
+  for(let i=0;i<firstDay;i++){
+    const empty = document.createElement("div");
+    empty.className="cal-cell";
+    empty.style.visibility="hidden";
+    cal.appendChild(empty);
+  }
+
+  for(let d=1; d<=daysInMonth; d++){
+    const cell = document.createElement("div");
+    cell.className = "cal-cell";
+    cell.textContent = d;
+    const dateObj = new Date(calYear,calMonth,d);
+    const mins = getMinutesForDate(dateObj);
+    if(mins>0){
+      cell.style.background="#bfdbfe";
+    }
+    cell.onclick = ()=>{
+      document.querySelectorAll(".cal-cell").forEach(c=>c.classList.remove("active"));
+      cell.classList.add("active");
+      document.getElementById("calendarInfo").textContent =
+        `${d}/${calMonth+1}/${calYear}: ${mins} minutes read.`;
+    };
+    cal.appendChild(cell);
+  }
+}
+function prevMonth(){
+  calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar();
+}
+function nextMonth(){
+  calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar();
+}
+
+/* ========= CHAPTER PROGRESS ========= */
+function updateChapters(){
+  const total = parseInt(document.getElementById("totalChapters").value)||0;
+  const done = parseInt(document.getElementById("doneChapters").value)||0;
+  const info = document.getElementById("chapterInfo");
+  const chips = document.getElementById("chapterChips");
+  if(total<=0){
+    info.textContent = "Enter valid chapter numbers.";
+    chips.innerHTML = "";
+    return;
+  }
+  const percent = Math.min(100, (done/total)*100);
+  info.textContent = `Completed ${done} of ${total} chapters (${percent.toFixed(1)}%).`;
+  chips.innerHTML = "";
+  for(let i=1;i<=total;i++){
+    const span = document.createElement("span");
+    span.className = "chip";
+    span.textContent = "Ch "+i;
+    if(i<=done){ span.style.background="#bbf7d0"; }
+    chips.appendChild(span);
+  }
+}
+
+/* ========= AI SUMMARY DEMO ========= */
 function generateSummary(){
-  let id=document.getElementById("summaryBookId").value;
-  let out=document.getElementById("summaryResult");
-  if(!id){ out.textContent="Enter Book ID"; return; }
-  out.textContent="Generating...";
-  setTimeout(()=> out.textContent="Short AI summary (demo): This book explains concepts clearly.", 700);
+  const id = document.getElementById("summaryBookId").value.trim();
+  const out = document.getElementById("summaryResult");
+  if(!id){ out.textContent="Enter book ID first."; return; }
+  out.textContent="Generating summary (demo)...";
+  setTimeout(()=>{
+    out.textContent = `Book ${id}: This book covers core concepts with simple explanations, real-life examples, and practice questions. (Demo text, replace with real AI backend if needed.)`;
+  },800);
 }
 
-/* ------------------ TIMER ------------------ */
-let tSec=0, intv=null;
+/* ========= TIMER ========= */
+let timerSec = 0;
+let timerInt = null;
 
-function fmt(s){
-  let h=String(Math.floor(s/3600)).padStart(2,"0");
-  let m=String(Math.floor((s%3600)/60)).padStart(2,"0");
-  let se=String(s%60).padStart(2,"0");
-  return `${h}:${m}:${se}`;
+function formatTime(s){
+  const h = String(Math.floor(s/3600)).padStart(2,"0");
+  const m = String(Math.floor((s%3600)/60)).padStart(2,"0");
+  const sec = String(s%60).padStart(2,"0");
+  return `${h}:${m}:${sec}`;
 }
-
 function startTimer(){
-  if(intv) return;
-  intv=setInterval(()=>{
-    tSec++;
-    document.getElementById("timerDisplay").textContent=fmt(tSec);
+  if(timerInt) return;
+  timerInt = setInterval(()=>{
+    timerSec++;
+    document.getElementById("timerDisplay").textContent = formatTime(timerSec);
   },1000);
 }
-function pauseTimer(){ clearInterval(intv); intv=null; }
-function stopTimer(){
-  clearInterval(intv); intv=null;
-  tSec=0;
-  document.getElementById("timerDisplay").textContent="00:00:00";
+function pauseTimer(){
+  clearInterval(timerInt);
+  timerInt=null;
 }
-</script>
+function stopTimer(){
+  pauseTimer();
+  const mins = Math.floor(timerSec/60);
+  if(mins>0){
+    addMinutesForDate(new Date(), mins);
+    updateAllStats();
+  }
+  timerSec = 0;
+  document.getElementById("timerDisplay").textContent = "00:00:00";
+}
 
+/* ========= INIT ========= */
+renderCalendar();
+updateAllStats();
+</script>
 </body>
 </html>
