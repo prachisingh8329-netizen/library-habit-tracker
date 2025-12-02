@@ -1,41 +1,151 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>{{ book.title }}</title>
-    <style>
-        body {
-            background: #eef2ff;
-            font-family: Poppins, sans-serif;
-            margin: 0;
-            text-align: center;
-        }
-        header {
-            padding: 16px;
-            background: #6366f1;
-            color: white;
-            font-size: 22px;
-        }
-        a {
-            color: #fff;
-            font-weight: bold;
-            text-decoration: none;
-        }
-        iframe {
-            width: 100%;
-            height: 90vh;
-            border: none;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{ book.title }} — Reading Mode</title>
+  <style>
+    body{
+      margin:0;
+      font-family:Inter,'Poppins',sans-serif;
+      background:#f3f4f6;
+      color:#0f172a;
+      padding:18px;
+    }
+    .container{max-width:900px;margin:0 auto;}
+    .card{
+      background:white;
+      border-radius:12px;
+      padding:16px;
+      box-shadow:0 8px 24px rgba(15,23,42,0.06);
+      margin-bottom:14px;
+    }
+    h1{margin:0 0 6px 0;font-size:24px;}
+    .meta{font-size:13px;color:#64748b;}
+    .tag{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      background:#eff6ff;
+      color:#1d4ed8;
+      font-size:12px;
+      margin-top:6px;
+    }
+    .row{display:flex;gap:14px;flex-wrap:wrap;}
+    .left{flex:1;min-width:260px;}
+    .right{flex:2;min-width:260px;}
+    .chapter-item{
+      padding:7px 9px;
+      border-radius:8px;
+      border:1px solid #e5e7eb;
+      margin-bottom:6px;
+      font-size:13px;
+      cursor:pointer;
+    }
+    .chapter-item.active{
+      background:#dbeafe;
+      border-color:#93c5fd;
+    }
+    #chapterContent{
+      padding:10px;
+      border-radius:8px;
+      background:#f9fafb;
+      min-height:120px;
+      font-size:14px;
+      margin-top:6px;
+    }
+    button{
+      padding:8px 12px;
+      border-radius:8px;
+      border:none;
+      cursor:pointer;
+      font-size:13px;
+    }
+    .btn-primary{background:#2563eb;color:white;}
+    .btn-ghost{
+      background:transparent;
+      border:1px solid #cbd5f5;
+      color:#2563eb;
+      margin-left:6px;
+    }
+  </style>
 </head>
 <body>
+<div class="container">
 
-<header>
-    📖 {{ book.title }}
-    &nbsp;&nbsp;&nbsp;
-    <a href="/dashboard">⬅ Back</a>
-</header>
+  <!-- Book header -->
+  <div class="card">
+    <h1>{{ book.title }}</h1>
+    <div class="meta">By {{ book.author }}</div>
+    <span class="tag">Computer Science</span>
+    <p style="margin-top:10px;">{{ book.description }}</p>
+    <div style="margin-top:8px;">
+      <button class="btn-primary" onclick="readFirstChapter()">Start from Chapter 1</button>
+      <button class="btn-ghost" onclick="history.back()">⬅ Back to Dashboard</button>
+    </div>
+  </div>
 
-<iframe src="{{ book.pdf }}"></iframe>
+  <!-- Layout: chapters left, content right -->
+  <div class="row">
+    <div class="card left">
+      <h3 style="margin-top:0;">Chapters</h3>
+      <div id="chapters">
+        {% for ch in book.chapters %}
+          <div class="chapter-item" data-number="{{ ch.number }}" onclick="openChapter({{ ch.number }})">
+            {{ ch.number }}. {{ ch.title }}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card right">
+      <h3 style="margin-top:0;">Reading Content</h3>
+      <div id="chapterContent">
+        Click a chapter on the left to start reading.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // chapters array from backend → JS
+  var chapters = {{ book.chapters|tojson }};
+
+  function openChapter(num){
+    var contentDiv = document.getElementById("chapterContent");
+    var items = document.querySelectorAll(".chapter-item");
+    for(var i=0;i<items.length;i++){
+      items[i].classList.remove("active");
+      if(items[i].getAttribute("data-number") == String(num)){
+        items[i].classList.add("active");
+      }
+    }
+
+    var chapter = null;
+    for(var j=0;j<chapters.length;j++){
+      if(chapters[j].number === num){
+        chapter = chapters[j];
+        break;
+      }
+    }
+    if(!chapter){
+      contentDiv.textContent = "Chapter not found.";
+      return;
+    }
+
+    contentDiv.innerHTML =
+      "<strong>" + chapter.number + ". " + chapter.title + "</strong><br><br>" +
+      chapter.content;
+  }
+
+  function readFirstChapter(){
+    if(chapters.length > 0){
+      openChapter(chapters[0].number);
+      document.getElementById("chapterContent").scrollIntoView({behavior:"smooth"});
+    }
+  }
+</script>
 
 </body>
 </html>
