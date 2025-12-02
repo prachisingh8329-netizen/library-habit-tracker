@@ -4,12 +4,8 @@
   <meta charset="utf-8">
   <title>Sign Up - Library Habit Tracker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
+    * { box-sizing: border-box; font-family: "Poppins", system-ui, sans-serif; }
     body {
       margin: 0;
       min-height: 100vh;
@@ -27,71 +23,28 @@
       padding: 32px 26px 24px;
       text-align: center;
     }
-    .title {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 6px;
-      color: #0f172a;
-    }
-    .subtitle {
-      font-size: 13px;
-      color: #64748b;
-      margin-bottom: 24px;
-    }
-    .field {
-      text-align: left;
-      margin-bottom: 14px;
-      font-size: 13px;
-      color: #0f172a;
-    }
-    .field label {
-      display: block;
-      margin-bottom: 4px;
-    }
+    .title { font-size: 24px; font-weight: 700; margin-bottom: 6px; color: #0f172a; }
+    .subtitle { font-size: 13px; color: #64748b; margin-bottom: 24px; }
+    .field { text-align: left; margin-bottom: 14px; font-size: 13px; color: #0f172a; }
+    .field label { display: block; margin-bottom: 4px; }
     .field input {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid #cbd5f5;
-      font-size: 14px;
-      outline: none;
-      transition: border 0.2s, box-shadow 0.2s;
+      width: 100%; padding: 10px 12px; border-radius: 10px;
+      border: 1px solid #cbd5f5; font-size: 14px; outline: none;
     }
     .field input:focus {
       border-color: #2563eb;
       box-shadow: 0 0 0 1px rgba(37,99,235,0.2);
     }
     .btn {
-      width: 100%;
-      margin-top: 8px;
-      border: none;
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-size: 15px;
-      font-weight: 600;
+      width: 100%; margin-top: 8px; border: none; border-radius: 999px;
+      padding: 10px 14px; font-size: 15px; font-weight: 600;
       color: #ffffff;
       background: linear-gradient(90deg,#f97316,#ec4899);
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
     }
-    .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 22px rgba(236,72,153,0.4);
-      opacity: 0.95;
-    }
-    .switch-text {
-      margin-top: 18px;
-      font-size: 13px;
-      color: #64748b;
-    }
-    .switch-text a {
-      color: #2563eb;
-      font-weight: 600;
-      text-decoration: none;
-    }
-    .switch-text a:hover {
-      text-decoration: underline;
-    }
+    .switch-text { margin-top: 18px; font-size: 13px; color: #64748b; }
+    .switch-text a { color: #2563eb; font-weight: 600; text-decoration: none; }
+    .switch-text a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -100,7 +53,6 @@
     <div class="title">Create Account ✨</div>
     <div class="subtitle">Sign up to start tracking your library habits.</div>
 
-    <!-- IMPORTANT: yahi function JS me call hoga -->
     <form onsubmit="signupUser(event)">
       <div class="field">
         <label for="name">Full Name</label>
@@ -126,8 +78,6 @@
     </div>
   </div>
 
-  <!-- JS file jahan signupUser() defined hai -->
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
-
