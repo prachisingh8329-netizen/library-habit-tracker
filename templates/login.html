@@ -61,7 +61,15 @@
     <p>Login to your Library Habit Tracker dashboard.</p>
 
     <form onsubmit="loginUser(event)">
-      <input id="li_email" type="email" placeholder="Email Address" required>
+      <!-- EMAIL: must end with .com -->
+      <input
+        id="li_email"
+        type="email"
+        placeholder="Email Address"
+        required
+        pattern="^[^@\s]+@[^@\s]+\.com$"
+        title="Enter a valid email that ends with .com"
+      >
       <input id="li_password" type="password" placeholder="Password" required>
       <button type="submit">Login</button>
     </form>
