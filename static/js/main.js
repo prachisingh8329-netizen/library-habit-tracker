@@ -1,49 +1,12 @@
-// =========================
-//  SIGN UP FUNCTION
-// =========================
-async function signupUser(event) {
-  event.preventDefault();
-
-  const name = document.getElementById("name").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-
-  if (!name || !email || !password) {
-    alert("Please fill all fields");
-    return;
-  }
-
-  try {
-    const res = await fetch("/api/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password })
-    });
-
-    const data = await res.json();
-    alert(data.message);
-
-    if (data.success) {
-      window.location.href = "/login";
-    }
-
-  } catch (error) {
-    console.error("Signup error:", error);
-    alert("Signup failed. Try again.");
-  }
-}
-
-// =========================
-//  LOGIN FUNCTION
-// =========================
-async function loginUser(event) {
+// LOGIN FUNCTION – yahi form se call hoga
+async function login(event) {
   event.preventDefault();
 
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
   if (!email || !password) {
-    alert("Fill email and password");
+    alert("Please enter email and password");
     return;
   }
 
@@ -57,13 +20,13 @@ async function loginUser(event) {
     const data = await res.json();
 
     if (data.success) {
+      // login sahi → dashboard pe jao
       window.location.href = "/dashboard";
     } else {
-      alert(data.message);
+      alert(data.message || "Login failed");
     }
-
-  } catch (error) {
-    console.error("Login error:", error);
-    alert("Something went wrong");
+  } catch (err) {
+    console.error("Login error:", err);
+    alert("Something went wrong. Try again.");
   }
 }
