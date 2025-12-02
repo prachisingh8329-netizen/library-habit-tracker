@@ -1,4 +1,4 @@
-// SIGNUP FUNCTION
+// SIGNUP
 async function signupUser(event) {
   event.preventDefault();
 
@@ -17,7 +17,7 @@ async function signupUser(event) {
     alert(data.message);
 
     if (data.ok) {
-      // signup ho gaya, ab login page pe
+      // signup success → login page
       window.location.href = "/login";
     }
   } catch (err) {
@@ -26,7 +26,7 @@ async function signupUser(event) {
   }
 }
 
-// LOGIN FUNCTION
+// LOGIN
 async function login(event) {
   event.preventDefault();
 
@@ -44,7 +44,7 @@ async function login(event) {
     alert(data.message);
 
     if (data.ok) {
-      // login success -> dashboard
+      // login success → dashboard
       window.location.href = "/dashboard";
     }
   } catch (err) {
