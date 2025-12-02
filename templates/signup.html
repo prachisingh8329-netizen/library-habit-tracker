@@ -79,9 +79,29 @@
     <p>Sign up to start tracking your library habits and CS reading.</p>
 
     <form onsubmit="signupUser(event)">
-      <input id="su_name" type="text" placeholder="Full Name" required>
-      <input id="su_email" type="email" placeholder="Email Address" required>
+      <!-- NAME: only letters, max 15 chars -->
+      <input
+        id="su_name"
+        type="text"
+        placeholder="Full Name"
+        required
+        maxlength="15"
+        pattern="[A-Za-z]{1,15}"
+        title="Name must contain only letters (A–Z) and max 15 characters."
+      >
+
+      <!-- EMAIL: must end with .com -->
+      <input
+        id="su_email"
+        type="email"
+        placeholder="Email Address"
+        required
+        pattern="^[^@\s]+@[^@\s]+\.com$"
+        title="Enter a valid email that ends with .com"
+      >
+
       <input id="su_password" type="password" placeholder="Password" required>
+
       <button type="submit">Sign Up</button>
     </form>
 
