@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Library Habit Tracker — Dashboard</title>
 
-  <!-- Chart.js (GRAPH LIBRARY) -->
+  <!-- Chart.js for graph -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
@@ -20,7 +20,7 @@
 
     body{
       margin:0;
-      background:#f3f4f6;   /* normal soft background */
+      background:#f3f4f6;
       padding:20px;
       color:#0f172a;
     }
@@ -167,7 +167,7 @@
     <label>Search a Computer Science Book</label>
     <div class="row">
       <div class="col">
-        <input id="searchBox" placeholder="e.g. Algorithms, Operating System, DBMS..." />
+        <input id="searchBox" placeholder="e.g. Algorithms, OS, DBMS..." />
       </div>
       <button class="btn small" onclick="doSearch()">Search</button>
     </div>
@@ -230,17 +230,17 @@
     <p class="meta" id="predictionResult">Enter pages to see how many days it will take.</p>
   </div>
 
-  <!-- 7. AI SUMMARY -->
+  <!-- 7. AI SUMMARY (BOOK NAME) -->
   <div class="card">
-    <label>🤖 AI Summary (demo)</label>
+    <label>🤖 AI Summary</label>
     <div class="row">
       <div class="col">
-        <input id="summaryBookId" placeholder="Book ID (e.g. 1)" />
+        <input id="summaryBookName" placeholder="Enter book name or topic (e.g. Operating System)" />
       </div>
       <button class="btn small" onclick="generateSummary()">Generate Summary</button>
     </div>
     <p class="meta" id="summaryResult" style="margin-top:6px;">
-      AI will give a short summary here (demo text).
+      Type a book name and get a short AI-style summary.
     </p>
   </div>
 
@@ -259,7 +259,7 @@
 (function(){
   var h = new Date().getHours();
   var txt = "Welcome back!";
-  if(h < 12) txt = "Good morning, keep learning ☀";
+  if(h < 12) txt = "Good morning, keep learning ☀️";
   else if(h < 18) txt = "Good afternoon, great time to read 📖";
   else txt = "Good evening, relax with a good book 🌙";
   document.getElementById("greetingText").textContent = txt;
@@ -279,7 +279,7 @@ document.getElementById("feeling").addEventListener("change", function(e){
   document.getElementById("moodSuggestion").textContent = moodMap[v] || "—";
 });
 
-// ===== SEARCH (needs backend /api/search) =====
+// ===== SEARCH (calls /api/search) =====
 function doSearch(){
   var q   = document.getElementById("searchBox").value.trim();
   var out = document.getElementById("searchResults");
@@ -372,7 +372,6 @@ function renderCalendar(){
       }
 
       cell.onclick = function(){
-        // remove active from all
         var all = cal.querySelectorAll(".cal-cell");
         for(var j=0;j<all.length;j++){ all[j].classList.remove("active"); }
         cell.classList.add("active");
@@ -384,7 +383,7 @@ function renderCalendar(){
           var nowMins = getMinutesForDate(dt);
           info.textContent = day + "/" + (currentMonth+1) + "/" + currentYear +
                              " — " + nowMins + " minute(s) logged.";
-          renderCalendar(); // re-draw to recolor
+          renderCalendar(); // re-draw to recolor + refresh graph
         }
       };
 
@@ -392,7 +391,7 @@ function renderCalendar(){
     })(d);
   }
 
-  updateChart(); // graph sync ho jaaye
+  updateChart();
 }
 
 function prevMonth(){
@@ -506,19 +505,32 @@ function predictFinish(){
   out.textContent = "At your current speed, you’ll finish this book in about " + days + " day(s).";
 }
 
-// ===== AI SUMMARY (DEMO) =====
+// ===== AI SUMMARY (BOOK NAME) =====
 function generateSummary(){
-  var id  = document.getElementById("summaryBookId").value.trim();
-  var out = document.getElementById("summaryResult");
-  if(!id){
-    out.textContent = "Please enter a Book ID.";
+  var name = document.getElementById("summaryBookName").value.trim();
+  var out  = document.getElementById("summaryResult");
+  if(!name){
+    out.textContent = "Please enter a book name or topic.";
     return;
   }
-  out.textContent = "Generating summary (demo)...";
-  setTimeout(function(){
-    out.textContent = "Book " + id +
-      ": This book explains core CS concepts in a simple, student-friendly way with examples and practice problems. (Demo summary.)";
-  }, 800);
+
+  var lower = name.toLowerCase();
+  var summary;
+  if(lower.indexOf("algorithm") !== -1){
+    summary = "This book teaches you how to design and analyse algorithms, from sorting and searching to graphs and dynamic programming. It focuses on logic, time complexity and problem-solving patterns.";
+  } else if(lower.indexOf("operating") !== -1 || lower.indexOf("os") !== -1){
+    summary = "An operating systems book explains how processes, threads, memory, files and devices are managed so one computer can run many programs safely and efficiently.";
+  } else if(lower.indexOf("network") !== -1){
+    summary = "A networking book walks through how data travels over the internet — from applications and protocols to IP addressing, routing and how packets reach from one device to another.";
+  } else if(lower.indexOf("database") !== -1 || lower.indexOf("dbms") !== -1 || lower.indexOf("sql") !== -1){
+    summary = "A database book explains how data is stored, organised and queried using the relational model, SQL, transactions and normalization to keep information consistent and reliable.";
+  } else if(lower.indexOf("data structure") !== -1){
+    summary = "A data structures book focuses on how to store and organise data using arrays, linked lists, stacks, queues, trees and graphs so programs become faster and more memory-efficient.";
+  } else {
+    summary = "“" + name + "” focuses on building a clear understanding of its core ideas, starting from simple explanations and gradually moving toward real-world examples, diagrams and practice questions so students can remember and apply the concepts with confidence.";
+  }
+
+  out.textContent = summary;
 }
 
 // ===== COMMENTS =====
@@ -538,7 +550,7 @@ function addComment(){
   box.value = "";
 }
 
-// ===== INIT =====
+// INIT
 renderCalendar();
 </script>
 </body>
