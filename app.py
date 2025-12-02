@@ -114,5 +114,6 @@ def api_login():
     return jsonify({"success": True, "message": "Login successful"})
 
 # ---------- RUN SERVER ----------
-if _name_ == "_main_":
+if __name__ == "__main__":
     app.run(debug=True)
+
