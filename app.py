@@ -3,11 +3,11 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
 
-app = Flask(_name_)
+app = Flask(__name__)
 app.secret_key = "my-secret-key"
 
 # Database path
-BASE_DIR = os.path.abspath(os.path.dirname(_file_))
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, "auth.db")
 
 # ---------- DB CONNECTION ----------
@@ -116,4 +116,5 @@ def api_login():
 # ---------- RUN SERVER ----------
 if __name__ == "__main__":
     app.run(debug=True)
+
 
