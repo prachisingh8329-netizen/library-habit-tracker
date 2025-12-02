@@ -31,29 +31,6 @@
       font-size:12px;
       margin-top:6px;
     }
-    .row{display:flex;gap:14px;flex-wrap:wrap;}
-    .left{flex:1;min-width:260px;}
-    .right{flex:2;min-width:260px;}
-    .chapter-item{
-      padding:7px 9px;
-      border-radius:8px;
-      border:1px solid #e5e7eb;
-      margin-bottom:6px;
-      font-size:13px;
-      cursor:pointer;
-    }
-    .chapter-item.active{
-      background:#dbeafe;
-      border-color:#93c5fd;
-    }
-    #chapterContent{
-      padding:10px;
-      border-radius:8px;
-      background:#f9fafb;
-      min-height:120px;
-      font-size:14px;
-      margin-top:6px;
-    }
     button{
       padding:8px 12px;
       border-radius:8px;
@@ -68,84 +45,53 @@
       color:#2563eb;
       margin-left:6px;
     }
+    iframe{
+      width:100%;
+      height:480px;
+      border:none;
+      border-radius:10px;
+      background:#000;
+    }
   </style>
 </head>
 <body>
 <div class="container">
 
-  <!-- Book header -->
   <div class="card">
     <h1>{{ book.title }}</h1>
-    <div class="meta">By {{ book.author }}</div>
-    <span class="tag">Computer Science</span>
-    <p style="margin-top:10px;">{{ book.description }}</p>
+    <div class="meta">
+      {{ book.author or "Unknown author" }}
+      {% if book.published_date %} • {{ book.published_date }}{% endif %}
+      {% if book.publisher %} • {{ book.publisher }}{% endif %}
+    </div>
+    {% if book.categories %}
+      <span class="tag">{{ book.categories }}</span>
+    {% else %}
+      <span class="tag">Computer Science</span>
+    {% endif %}
+    <p style="margin-top:10px;">{{ book.description or "No detailed description available for this book." }}</p>
     <div style="margin-top:8px;">
-      <button class="btn-primary" onclick="readFirstChapter()">Start from Chapter 1</button>
+      {% if book.preview_link %}
+        <a href="{{ book.preview_link }}" target="_blank">
+          <button class="btn-primary">Open full preview in Google Books ↗</button>
+        </a>
+      {% endif %}
       <button class="btn-ghost" onclick="history.back()">⬅ Back to Dashboard</button>
     </div>
   </div>
 
-  <!-- Layout: chapters left, content right -->
-  <div class="row">
-    <div class="card left">
-      <h3 style="margin-top:0;">Chapters</h3>
-      <div id="chapters">
-        {% for ch in book.chapters %}
-          <div class="chapter-item" data-number="{{ ch.number }}" onclick="openChapter({{ ch.number }})">
-            {{ ch.number }}. {{ ch.title }}
-          </div>
-        {% endfor %}
-      </div>
-    </div>
-
-    <div class="card right">
-      <h3 style="margin-top:0;">Reading Content</h3>
-      <div id="chapterContent">
-        Click a chapter on the left to start reading.
-      </div>
-    </div>
+  <div class="card">
+    <h3 style="margin-top:0;">Embedded preview</h3>
+    <p class="meta">
+      This preview is loaded from Google Books. Some books allow full or partial reading, others only show a sample.
+    </p>
+    <!-- Google Books embed (if available) -->
+    <iframe
+      src="https://books.google.com/books?id={{ book.id }}&printsec=frontcover&output=embed"
+      allowfullscreen>
+    </iframe>
   </div>
 
 </div>
-
-<script>
-  // chapters array from backend → JS
-  var chapters = {{ book.chapters|tojson }};
-
-  function openChapter(num){
-    var contentDiv = document.getElementById("chapterContent");
-    var items = document.querySelectorAll(".chapter-item");
-    for(var i=0;i<items.length;i++){
-      items[i].classList.remove("active");
-      if(items[i].getAttribute("data-number") == String(num)){
-        items[i].classList.add("active");
-      }
-    }
-
-    var chapter = null;
-    for(var j=0;j<chapters.length;j++){
-      if(chapters[j].number === num){
-        chapter = chapters[j];
-        break;
-      }
-    }
-    if(!chapter){
-      contentDiv.textContent = "Chapter not found.";
-      return;
-    }
-
-    contentDiv.innerHTML =
-      "<strong>" + chapter.number + ". " + chapter.title + "</strong><br><br>" +
-      chapter.content;
-  }
-
-  function readFirstChapter(){
-    if(chapters.length > 0){
-      openChapter(chapters[0].number);
-      document.getElementById("chapterContent").scrollIntoView({behavior:"smooth"});
-    }
-  }
-</script>
-
 </body>
 </html>
