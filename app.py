@@ -1,16 +1,152 @@
 from flask import Flask, render_template, request, jsonify, abort
+import sqlite3
+import os
 import requests
 
 app = Flask(__name__)
 
+# -------------- CONFIG --------------
+DB_PATH = "users.db"
 GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes"
+# ------------------------------------
 
+
+# -------------- DB HELPER --------------
+def init_db():
+    """Create users table if not exists."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        );
+        """
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_db():
+    return sqlite3.connect(DB_PATH)
+
+
+# initialize on startup
+if not os.path.exists(DB_PATH):
+    init_db()
+# ---------------------------------------
+
+
+# -------------- PAGE ROUTES --------------
 
 @app.route("/")
-def home():
-    # Main dashboard page
+def landing_page():
+    """
+    Get Started / home page.
+    Make sure you have templates/index.html
+    """
+    return render_template("index.html")
+
+
+@app.route("/signup")
+def signup_page():
+    """
+    Signup UI page.
+    templates/signup.html (your nice glassmorphism signup)
+    """
+    return render_template("signup.html")
+
+
+@app.route("/login")
+def login_page():
+    """
+    Login UI page.
+    templates/login.html
+    """
+    return render_template("login.html")
+
+
+@app.route("/dashboard")
+def dashboard_page():
+    """
+    Main dashboard UI page.
+    templates/dashboard.html (the big tracker you and I made)
+    """
     return render_template("dashboard.html")
 
+
+# -------------- AUTH APIs --------------
+
+@app.route("/api/signup", methods=["POST"])
+def api_signup():
+    """
+    Frontend se expected JSON:
+    { "name": "...", "email": "...", "password": "..." }
+    """
+    data = request.get_json(force=True) or {}
+    name = data.get("name", "").strip()
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "").strip()
+
+    if not name or not email or not password:
+        return jsonify({"success": False, "message": "All fields are required."}), 400
+
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        c.execute(
+            "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
+            (name, email, password),
+        )
+        conn.commit()
+        conn.close()
+    except sqlite3.IntegrityError:
+        # email already exists
+        return jsonify({"success": False, "message": "Email already registered."}), 409
+    except Exception as e:
+        print("SIGNUP ERROR:", e)
+        return jsonify({"success": False, "message": "Server error."}), 500
+
+    return jsonify({"success": True, "message": "Signup successful!"})
+
+
+@app.route("/api/login", methods=["POST"])
+def api_login():
+    """
+    Frontend se expected JSON:
+    { "email": "...", "password": "..." }
+    """
+    data = request.get_json(force=True) or {}
+    email = data.get("email", "").strip().lower()
+    password = data.get("password", "").strip()
+
+    if not email or not password:
+        return jsonify({"success": False, "message": "Email and password required."}), 400
+
+    try:
+        conn = get_db()
+        c = conn.cursor()
+        c.execute(
+            "SELECT id FROM users WHERE email = ? AND password = ?",
+            (email, password),
+        )
+        row = c.fetchone()
+        conn.close()
+    except Exception as e:
+        print("LOGIN ERROR:", e)
+        return jsonify({"success": False, "message": "Server error."}), 500
+
+    if not row:
+        return jsonify({"success": False, "message": "Invalid email or password."}), 401
+
+    # Simple response: frontend redirect karega /dashboard pe
+    return jsonify({"success": True, "message": "Login successful!", "redirect": "/dashboard"})
+
+
+# -------------- ONLINE BOOK SEARCH (GOOGLE BOOKS) --------------
 
 @app.route("/api/search")
 def api_search():
@@ -46,7 +182,6 @@ def api_search():
         title = info.get("title", "Untitled")
         authors = ", ".join(info.get("authors", []))
         desc = info.get("description", "") or ""
-        # description thoda short kar dete hain
         if len(desc) > 220:
             desc = desc[:220] + "..."
 
@@ -66,8 +201,7 @@ def api_search():
 @app.route("/read-book/<volume_id>")
 def read_book(volume_id):
     """
-    Reading mode page for one book.
-    Hum yahan se bhi Google Books API se detail laayenge.
+    Reading mode page for one online book (Google Books).
     """
     try:
         r = requests.get(f"{GOOGLE_BOOKS_API}/{volume_id}", timeout=10)
@@ -94,6 +228,8 @@ def read_book(volume_id):
 
     return render_template("read_book.html", book=book)
 
+
+# ---------------------------------------
 
 if __name__ == "__main__":
     app.run(debug=True)
