@@ -1,112 +1,109 @@
-from flask import Flask, render_template, request, redirect, session, jsonify
-import json, os
+from flask import Flask, render_template, request, jsonify, abort
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key_here"
 
-# -------------------- USER DATABASE FILE --------------------
-USER_DB = "users.json"
+# ---------------- DEMO COMPUTER SCIENCE BOOKS ----------------
+BOOKS = {
+    1: {
+        "id": 1,
+        "title": "Introduction to Algorithms",
+        "author": "Cormen, Leiserson, Rivest, Stein",
+        "category": "computer science",
+        "description": "Classic algorithms book covering sorting, searching, dynamic programming and graph algorithms.",
+        "chapters": [
+            {"number": 1, "title": "Foundations", "content": "Basic concepts, asymptotic notation, algorithm analysis."},
+            {"number": 2, "title": "Sorting and Order Statistics", "content": "Insertion sort, merge sort, heapsort, quicksort."},
+            {"number": 3, "title": "Data Structures", "content": "Stacks, queues, linked lists, trees and hash tables."}
+        ]
+    },
+    2: {
+        "id": 2,
+        "title": "Operating System Concepts",
+        "author": "Silberschatz, Galvin, Gagne",
+        "category": "computer science",
+        "description": "Fundamentals of processes, threads, scheduling, memory management and file systems.",
+        "chapters": [
+            {"number": 1, "title": "Introduction to Operating Systems", "content": "What an OS does, different types of operating systems."},
+            {"number": 2, "title": "Processes", "content": "Process states, PCB, context switching and scheduling."},
+            {"number": 3, "title": "Memory Management", "content": "Paging, segmentation, virtual memory and page replacement."}
+        ]
+    },
+    3: {
+        "id": 3,
+        "title": "Computer Networks",
+        "author": "Kurose & Ross",
+        "category": "computer science",
+        "description": "Layered view of networking: application, transport, network and link layers.",
+        "chapters": [
+            {"number": 1, "title": "Computer Networks and the Internet", "content": "Network edges, core, delay and loss."},
+            {"number": 2, "title": "Application Layer", "content": "Web, HTTP, DNS, client-server and P2P models."},
+            {"number": 3, "title": "Transport Layer", "content": "UDP, TCP, reliability and congestion control."}
+        ]
+    },
+    4: {
+        "id": 4,
+        "title": "Database System Concepts",
+        "author": "Silberschatz, Korth, Sudarshan",
+        "category": "computer science",
+        "description": "Relational model, SQL, normalization, transactions and recovery.",
+        "chapters": [
+            {"number": 1, "title": "Introduction to Databases", "content": "What is a DBMS, advantages and architecture."},
+            {"number": 2, "title": "Relational Model", "content": "Relations, keys, constraints and relational algebra."},
+            {"number": 3, "title": "SQL", "content": "Basic queries, joins, subqueries and views."}
+        ]
+    },
+}
+# ---------------------------------------------------------------
 
-def load_users():
-    if os.path.exists(USER_DB):
-        with open(USER_DB, "r") as f:
-            return json.load(f)
-    return {}
 
-def save_users(data):
-    with open(USER_DB, "w") as f:
-        json.dump(data, f, indent=4)
-
-
-# -------------------- HOME PAGE --------------------
 @app.route("/")
 def home():
-    return render_template("index.html")
+    # seedha dashboard kholega
+    return render_template("dashboard.html")
 
 
-# -------------------- SIGNUP --------------------
-@app.route("/signup", methods=["GET", "POST"])
-def signup():
-    if request.method == "GET":
-        return render_template("signup.html")
+@app.route("/api/search")
+def api_search():
+    """
+    Search Computer Science books.
+    - If q empty: return all CS books
+    - Else filter by title/author/description
+    """
+    q = request.args.get("q", "").strip().lower()
 
-    users = load_users()
-    email = request.json.get("email")
-    password = request.json.get("password")
+    results = []
+    for b in BOOKS.values():
+        if b.get("category", "").lower() != "computer science":
+            continue
 
-    if email in users:
-        return jsonify({"status": "exists"})
+        if q == "":
+            results.append({
+                "id": b["id"],
+                "title": b["title"],
+                "author": b["author"],
+            })
+        else:
+            blob = (b["title"] + " " + b["author"] + " " + b["description"]).lower()
+            if q in blob:
+                results.append({
+                    "id": b["id"],
+                    "title": b["title"],
+                    "author": b["author"],
+                })
 
-    users[email] = {"password": password}
-    save_users(users)
-
-    return jsonify({"status": "success"})
-
-
-# -------------------- LOGIN --------------------
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "GET":
-        return render_template("login.html")
-
-    users = load_users()
-    email = request.json.get("email")
-    password = request.json.get("password")
-
-    if email in users and users[email]["password"] == password:
-        session["user"] = email
-        return jsonify({"status": "success"})
-
-    return jsonify({"status": "fail"})
+    return jsonify(results)
 
 
-# -------------------- DASHBOARD --------------------
-@app.route("/dashboard")
-def dashboard():
-    if "user" not in session:
-        return redirect("/login")
-
-    user_email = session["user"]
-    return render_template("dashboard.html", user_name=user_email.split("@")[0])
-
-
-# -------------------- LOGOUT --------------------
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/")
-
-
-# -------------------- READ BOOK PAGE --------------------
 @app.route("/read-book/<int:book_id>")
 def read_book(book_id):
-
-    BOOKS = {
-        1: {"title": "Introduction to Algorithms (CLRS)",
-            "pdf": "https://ia800503.us.archive.org/28/items/IntroductionToAlgorithmsThirdEdition/Introduction%20to%20Algorithms%20-%20Third%20Edition.pdf"},
-
-        2: {"title": "Computer Networks - Tanenbaum",
-            "pdf": "https://ncert.nic.in/textbook/pdf/lecs1dd.zip"},
-
-        3: {"title": "Operating System Concepts",
-            "pdf": "https://www.cs.uic.edu/~jbell/CourseNotes/OperatingSystems/"},
-
-        4: {"title": "Database System Concepts - Korth",
-            "pdf": "https://www.db-book.com/slides-dir/"},
-
-        5: {"title": "Let Us C - Kanetkar",
-            "pdf": "https://archive.org/details/letusC"},
-
-        6: {"title": "Python Crash Course",
-            "pdf": "https://ehmatthes.github.io/pcc_2e/"}
-    }
-
-    if book_id not in BOOKS:
-        return "Book Not Found", 404
-
-    return render_template("read_book.html", book=BOOKS[book_id])
+    """
+    Reading mode page for a single book.
+    """
+    book = BOOKS.get(book_id)
+    if not book:
+        return abort(404)
+    return render_template("read_book.html", book=book)
 
 
-# -------------------- RUN APP --------------------
 if __name__ == "__main__":
     app.run(debug=True)
