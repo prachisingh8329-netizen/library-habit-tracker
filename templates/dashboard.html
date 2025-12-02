@@ -20,7 +20,7 @@
 
     body{
       margin:0;
-      background:#f3f4f6;
+      background:#f3f4f6;   /* normal soft background */
       padding:20px;
       color:#0f172a;
     }
@@ -84,6 +84,7 @@
       cursor:pointer;
     }
 
+    /* Calendar */
     #calendar{
       display:grid;
       grid-template-columns:repeat(7,1fr);
@@ -143,7 +144,7 @@
       <h1>📚 Library Habit Tracker</h1>
       <div class="meta" id="greetingText">Welcome back!</div>
     </div>
-    <div class="meta">Mood → Books → Calendar → Progress</div>
+    <div class="meta">Track your mood, books & reading time</div>
   </header>
 
   <!-- 1. HOW ARE YOU FEELING -->
@@ -161,12 +162,12 @@
     <p class="meta">Suggestion: <b id="moodSuggestion">—</b></p>
   </div>
 
-  <!-- 2. SEARCH A COMPUTER SCIENCE BOOK (ONLINE) -->
+  <!-- 2. SEARCH A COMPUTER SCIENCE BOOK -->
   <div class="card">
-    <label>Search a Computer Science Book (online)</label>
+    <label>Search a Computer Science Book</label>
     <div class="row">
       <div class="col">
-        <input id="searchBox" placeholder="Type any letter or topic e.g. 'o', 'os', 'network'..." />
+        <input id="searchBox" placeholder="e.g. Algorithms, Operating System, DBMS..." />
       </div>
       <button class="btn small" onclick="doSearch()">Search</button>
     </div>
@@ -229,9 +230,9 @@
     <p class="meta" id="predictionResult">Enter pages to see how many days it will take.</p>
   </div>
 
-  <!-- 7. AI SUMMARY (BOOK NAME / TOPIC) -->
+  <!-- 7. AI SUMMARY -->
   <div class="card">
-    <label>🤖 AI Summary (demo)</label>
+    <label>🤖 AI Summary</label>
     <div class="row">
       <div class="col">
         <input id="summaryBookName" placeholder="Enter book name or topic (e.g. Operating System)" />
@@ -258,7 +259,7 @@
 (function(){
   var h = new Date().getHours();
   var txt = "Welcome back!";
-  if(h < 12) txt = "Good morning, keep learning ☀️";
+  if(h < 12) txt = "Good morning, keep learning ☀";
   else if(h < 18) txt = "Good afternoon, great time to read 📖";
   else txt = "Good evening, relax with a good book 🌙";
   document.getElementById("greetingText").textContent = txt;
@@ -270,7 +271,7 @@ var moodMap = {
   "😌 Calm":"Great time for theory and long chapters.",
   "🤩 Motivated":"Perfect moment to finish a full chapter or 40+ minutes.",
   "😔 Tired":"Do light revision or summaries only – small steps are ok.",
-  "😤 Stressed":"Read short, easy topics. Avoid overload.",
+  "😤 Stressed":"Read short, easy topics. Do not overload yourself.",
   "😴 Sleepy":"Just skim key points or diagrams for 5–10 minutes."
 };
 document.getElementById("feeling").addEventListener("change", function(e){
@@ -278,33 +279,29 @@ document.getElementById("feeling").addEventListener("change", function(e){
   document.getElementById("moodSuggestion").textContent = moodMap[v] || "—";
 });
 
-// ===== SEARCH (online via /api/search) =====
+// ===== SEARCH (uses /api/search) =====
 function doSearch(){
   var q   = document.getElementById("searchBox").value.trim();
   var out = document.getElementById("searchResults");
-  out.innerHTML = "<span class='meta'>Searching online books...</span>";
+  out.innerHTML = "<span class='meta'>Loading books...</span>";
 
   fetch("/api/search?q=" + encodeURIComponent(q))
     .then(function(res){ return res.json(); })
     .then(function(data){
       if(!Array.isArray(data) || data.length === 0){
-        out.innerHTML = "<p class='meta'>No Computer Science books found for this query.</p>";
+        out.innerHTML = "<p class='meta'>No Computer Science books found.</p>";
         return;
       }
       out.innerHTML = "";
       for(var i=0;i<data.length;i++){
         var b = data[i];
         out.innerHTML +=
-          "<div style='padding:8px;border-radius:10px;border:1px solid #e5e7eb;margin-bottom:6px;display:flex;justify-content:space-between;gap:10px;'>" +
+          "<div style='padding:6px 8px;border-radius:8px;border:1px solid #e5e7eb;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;'>" +
             "<div>" +
               "<b>"+ b.title +"</b><br>" +
-              "<span class='meta'>"+ (b.author || 'Unknown author') +"</span><br>" +
-              "<span class='meta'>"+ (b.description || '') +"</span>" +
+              "<span class='meta'>"+ (b.author || "") +"</span>" +
             "</div>" +
-            "<div style='display:flex;flex-direction:column;gap:6px;align-items:flex-end;'>" +
-              "<button class='btn small' onclick=\"location.href='/read-book/"+ b.id +"'\">Read</button>" +
-              (b.preview_link ? "<a class='meta' href='"+ b.preview_link +"' target='_blank'>Open in Google Books ↗</a>" : "") +
-            "</div>" +
+            "<button class='btn small' onclick=\"location.href='/read-book/"+ b.id +"'\">Read</button>" +
           "</div>";
       }
     })
@@ -353,6 +350,7 @@ function renderCalendar(){
   var daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
   label.textContent = new Date(currentYear, currentMonth).toLocaleDateString("en", {month:"long", year:"numeric"});
 
+  // empty cells
   for(var e=0; e<firstDay; e++){
     var empty = document.createElement("div");
     empty.className = "cal-cell";
@@ -360,6 +358,7 @@ function renderCalendar(){
     cal.appendChild(empty);
   }
 
+  // day cells
   for(var d=1; d<=daysInMonth; d++){
     (function(day){
       var cell = document.createElement("div");
@@ -506,10 +505,11 @@ function predictFinish(){
   out.textContent = "At your current speed, you’ll finish this book in about " + days + " day(s).";
 }
 
-// ===== AI SUMMARY (BOOK NAME / TOPIC) =====
+// ===== AI SUMMARY (only frontend) =====
 function generateSummary(){
   var name = document.getElementById("summaryBookName").value.trim();
   var out  = document.getElementById("summaryResult");
+
   if(!name){
     out.textContent = "Please enter a book name or topic.";
     return;
@@ -517,18 +517,19 @@ function generateSummary(){
 
   var lower = name.toLowerCase();
   var summary;
+
   if(lower.indexOf("algorithm") !== -1){
-    summary = "This book builds a strong foundation in algorithm design and analysis. It explains classic techniques such as divide-and-conquer, dynamic programming and greedy methods, and helps you compare different solutions using time and space complexity so you can choose the most efficient approach in real-world problems.";
+    summary = "This book teaches how to design and analyse algorithms, from sorting and searching to graphs and dynamic programming. It focuses on logic, efficiency and problem-solving patterns.";
   } else if(lower.indexOf("operating") !== -1 || lower.indexOf("os") !== -1){
-    summary = "This book gives a systematic view of how an operating system works from the inside. It covers processes, threads, CPU scheduling, memory management and file systems, and shows how an OS coordinates hardware and software so that multiple programs can run safely and efficiently on a single machine.";
+    summary = "An operating systems book explains how processes, memory, files and devices are managed so multiple programs can run safely and efficiently on a single machine.";
   } else if(lower.indexOf("network") !== -1){
-    summary = "This book explains how data moves across the internet using a layered approach. Starting from applications and protocols, it goes through TCP/UDP, IP addressing, routing and link-layer technologies, helping you understand what actually happens to a message when it travels from one computer to another.";
+    summary = "A networking book shows how data travels over the internet, covering protocols, addressing, routing and how two computers reliably talk to each other.";
   } else if(lower.indexOf("database") !== -1 || lower.indexOf("dbms") !== -1 || lower.indexOf("sql") !== -1){
-    summary = "This book introduces database systems with a focus on the relational model and SQL. It explains how to design stable schemas, write efficient queries, and apply concepts like normalization, transactions and recovery so that data remains consistent, secure and reliable even when many users access it at the same time.";
+    summary = "A database book explains how data is stored, organised and queried using the relational model, SQL, normalization and transactions to keep information consistent and fast.";
   } else if(lower.indexOf("data structure") !== -1){
-    summary = "This book focuses on data structures as building blocks for efficient programs. It walks through arrays, linked lists, stacks, queues, trees, heaps and graphs, showing when to use each structure and how the right choice can dramatically improve performance and memory usage in your applications.";
+    summary = "A data structures book focuses on how to organise data with arrays, lists, stacks, queues, trees and graphs so programs become simpler, faster and more memory-efficient.";
   } else {
-    summary = "“" + name + "” can be seen as a guide that introduces its core ideas in a step-by-step manner. It starts from intuitive explanations, adds diagrams and examples, and then connects the theory to practical scenarios and exercises so that readers can not only remember the concepts but also apply them in real problem-solving situations.";
+    summary = "“" + name + "” focuses on building a clear understanding of its core ideas, starting from simple explanations and gradually moving toward real-world examples, diagrams and practice questions so students can remember and apply the concepts with confidence.";
   }
 
   out.textContent = summary;
