@@ -1,104 +1,108 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
-from werkzeug.security import generate_password_hash, check_password_hash
-import sqlite3
+from flask import Flask, render_template, request, jsonify, abort
 
-app = Flask(__name__)
-app.secret_key = "my-secret-key-123"
+app = Flask(_name_)
 
-DB_NAME = "users.db"
+# --------- DEMO COMPUTER SCIENCE BOOK DATA ----------
+BOOKS = {
+    1: {
+        "id": 1,
+        "title": "Introduction to Algorithms",
+        "author": "Cormen, Leiserson, Rivest, Stein",
+        "category": "computer science",
+        "description": "Classic algorithms book covering sorting, searching, dynamic programming and graph algorithms.",
+        "chapters": [
+            {"number": 1, "title": "Foundations", "content": "Basic concepts, asymptotic notation, algorithm analysis."},
+            {"number": 2, "title": "Sorting and Order Statistics", "content": "Insertion sort, merge sort, heapsort, quicksort."},
+            {"number": 3, "title": "Data Structures", "content": "Stacks, queues, linked lists, trees and hash tables."}
+        ]
+    },
+    2: {
+        "id": 2,
+        "title": "Operating System Concepts",
+        "author": "Silberschatz, Galvin, Gagne",
+        "category": "computer science",
+        "description": "Fundamentals of processes, threads, scheduling, memory management and file systems.",
+        "chapters": [
+            {"number": 1, "title": "Introduction to Operating Systems", "content": "What an OS does, types of OS and overall structure."},
+            {"number": 2, "title": "Processes", "content": "Process states, PCB, context switching and scheduling."},
+            {"number": 3, "title": "Memory Management", "content": "Paging, segmentation, virtual memory and page replacement."}
+        ]
+    },
+    3: {
+        "id": 3,
+        "title": "Computer Networks",
+        "author": "Kurose & Ross",
+        "category": "computer science",
+        "description": "Layered view of networking: application, transport, network and link layers.",
+        "chapters": [
+            {"number": 1, "title": "Computer Networks and the Internet", "content": "Network edges, core, delay, loss and Internet structure."},
+            {"number": 2, "title": "Application Layer", "content": "Web, HTTP, DNS, client-server and P2P."},
+            {"number": 3, "title": "Transport Layer", "content": "UDP, TCP, reliability and congestion control."}
+        ]
+    },
+    4: {
+        "id": 4,
+        "title": "Database System Concepts",
+        "author": "Silberschatz, Korth, Sudarshan",
+        "category": "computer science",
+        "description": "Relational model, SQL, normalization, transactions and recovery.",
+        "chapters": [
+            {"number": 1, "title": "Introduction to Databases", "content": "What is a DBMS, its advantages and architecture."},
+            {"number": 2, "title": "Relational Model", "content": "Relations, keys, constraints, relational algebra."},
+            {"number": 3, "title": "SQL", "content": "Basic queries, joins, subqueries and views."}
+        ]
+    },
+}
+# ----------------------------------------------------
 
-# ---------------- DATABASE CREATE ----------------
-def create_db():
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            email TEXT UNIQUE,
-            password TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
 
-create_db()
-
-# ---------------- ROUTES ----------------
 @app.route("/")
 def home():
-    if "user_id" in session:
-        return redirect("/dashboard")
-    return redirect("/login")
+    # by default dashboard hi khulega
+    return render_template("dashboard.html")
 
-@app.route("/signup")
-def signup_page():
-    return render_template("signup.html")
 
-@app.route("/login")
-def login_page():
-    return render_template("login.html")
+@app.route("/api/search")
+def api_search():
+    """
+    Frontend se: /api/search?q=...
+    Sirf Computer Science category ki books return hogi.
+    Agar q empty hai -> saari CS books.
+    Agar q diya hai -> title/author/description me match karega.
+    """
+    q = request.args.get("q", "").strip().lower()
 
-@app.route("/dashboard")
-def dashboard():
-    if "user_id" not in session:
-        return redirect("/login")
-    return render_template("dashboard.html", username=session.get("username"))
+    results = []
+    for b in BOOKS.values():
+        if b.get("category", "").lower() != "computer science":
+            continue
 
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect("/login")
+        if q == "":
+            results.append({
+                "id": b["id"],
+                "title": b["title"],
+                "author": b["author"]
+            })
+        else:
+            text = (b["title"] + " " + b["author"] + " " + b["description"]).lower()
+            if q in text:
+                results.append({
+                    "id": b["id"],
+                    "title": b["title"],
+                    "author": b["author"]
+                })
 
-# ---------------- API: SIGNUP ----------------
-@app.route("/api/signup", methods=["POST"])
-def signup():
-    data = request.get_json()
-    name = data.get("name")
-    email = data.get("email")
-    password = data.get("password")
+    return jsonify(results)
 
-    if not name or not email or not password:
-        return jsonify({"success": False, "message": "All fields required"})
 
-    password_hash = generate_password_hash(password)
+@app.route("/read-book/<int:book_id>")
+def read_book(book_id):
+    """Reading mode page for a specific book."""
+    book = BOOKS.get(book_id)
+    if not book:
+        return abort(404)
+    return render_template("read_book.html", book=book)
 
-    try:
-        conn = sqlite3.connect(DB_NAME)
-        cur = conn.cursor()
-        cur.execute("INSERT INTO users (name, email, password) VALUES (?,?,?)",
-                    (name, email, password_hash))
-        conn.commit()
-        conn.close()
-        return jsonify({"success": True, "message": "Signup success"})
-    except:
-        return jsonify({"success": False, "message": "Email already exists"})
 
-# ---------------- API: LOGIN ----------------
-@app.route("/api/login", methods=["POST"])
-def login():
-    data = request.get_json()
-    email = data.get("email")
-    password = data.get("password")
-
-    conn = sqlite3.connect(DB_NAME)
-    cur = conn.cursor()
-    cur.execute("SELECT id,name,password FROM users WHERE email=?", (email,))
-    user = cur.fetchone()
-    conn.close()
-
-    if not user:
-        return jsonify({"success": False, "message": "Invalid email or password"})
-
-    if not check_password_hash(user[2], password):
-        return jsonify({"success": False, "message": "Wrong password"})
-
-    session["user_id"] = user[0]
-    session["username"] = user[1]
-
-    return jsonify({"success": True})
-
-# ---------------- RUN ----------------
-if __name__ == "__main__":
+if _name_ == "_main_":
     app.run(debug=True)
-
