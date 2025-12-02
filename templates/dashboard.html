@@ -1,314 +1,538 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Library Habit Tracker — Dashboard</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Library Habit Tracker — Dashboard</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js for graph -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-body{
-    margin:0;
-    font-family:Inter,'Poppins',sans-serif;
-    background:linear-gradient(120deg,#e0f2fe,#fafafa);
-    padding:20px;
-    color:#0f172a;
-}
-.container{max-width:1000px;margin:auto;}
-header{
-    background:white;
-    padding:16px;
-    border-radius:12px;
-    box-shadow:0 8px 20px rgba(0,0,0,0.08);
-    margin-bottom:15px;
-}
-.card{
-    background:white;
-    padding:16px;
-    border-radius:12px;
-    box-shadow:0 6px 15px rgba(0,0,0,0.05);
-    margin-bottom:14px;
-}
-h1{margin:0;font-size:22px;}
-label{font-size:14px;color:#475569;}
-input,select,textarea{
-    width:100%;
-    padding:10px;
-    border-radius:8px;
-    border:1px solid #cbd5e1;
-    margin-top:5px;
-}
-textarea{min-height:80px;}
-.row{display:flex;gap:12px;flex-wrap:wrap}
-.btn{
-    background:#2563eb;color:white;
-    padding:8px 12px;border-radius:8px;
-    border:none;cursor:pointer;font-size:13px;
-}
-.btn-ghost{
-    background:transparent;
-    border:1px solid #2563eb;
-    color:#2563eb;
-    padding:6px 10px;
-    border-radius:8px;
-    font-size:12px;
-}
-.meta{font-size:13px;color:#64748b}
+  <style>
+    :root{
+      --card:#ffffff;
+      --muted:#475569;
+      --accent:#2563eb;
+      --radius:12px;
+      --shadow:0 8px 24px rgba(15,23,42,0.06);
+    }
+    *{box-sizing:border-box;font-family:Inter,'Poppins',sans-serif}
 
-/* Calendar */
-#calendar{
-    display:grid;
-    grid-template-columns:repeat(7,1fr);
-    gap:6px;
-    margin-top:8px;
-}
-.cal-cell{
-    background:#e5e7eb;
-    text-align:center;
-    padding:8px;
-    border-radius:8px;
-    cursor:pointer;
-}
-.cal-cell.header{
-    background:#bfdbfe;
-    font-weight:bold;
-}
-.cal-cell.read{
-    background:#93c5fd;
-}
-.cal-cell.active{
-    outline:2px solid #1d4ed8;
-}
-.comment{
-    background:#f1f5f9;
-    padding:8px;border-radius:8px;
-    margin-top:5px;font-size:13px
-}
-</style>
+    body{
+      margin:0;
+      background:#f3f4f6;   /* normal light background */
+      padding:20px;
+      color:#0f172a;
+    }
+
+    .container{max-width:1000px;margin:0 auto;}
+
+    header{
+      background:#ffffff;
+      padding:16px;
+      border-radius:12px;
+      box-shadow:var(--shadow);
+      margin-bottom:16px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+    h1{margin:0;font-size:22px;font-weight:700}
+    .meta{font-size:13px;color:var(--muted);}
+
+    .card{
+      background:#ffffff;
+      padding:16px;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      margin-bottom:14px;
+    }
+
+    label{display:block;margin-bottom:6px;font-size:14px;color:var(--muted);}
+    input,select,textarea{
+      width:100%;
+      padding:9px 10px;
+      border-radius:8px;
+      border:1px solid #d1d5db;
+      font-size:14px;
+      margin-top:4px;
+    }
+    textarea{min-height:80px;resize:vertical;}
+
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}
+    .col{flex:1;min-width:240px}
+
+    .btn{
+      background:var(--accent);
+      color:white;
+      border:none;
+      border-radius:8px;
+      padding:8px 12px;
+      font-size:13px;
+      cursor:pointer;
+    }
+    .btn.small{padding:6px 10px;font-size:12px}
+    .btn-ghost{
+      background:transparent;
+      color:var(--accent);
+      border-radius:8px;
+      border:1px solid #c7d2fe;
+      padding:6px 10px;
+      font-size:12px;
+      cursor:pointer;
+    }
+
+    /* Calendar */
+    #calendar{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:6px;
+      margin-top:8px;
+      font-size:12px;
+    }
+    .cal-cell{
+      padding:8px;
+      border-radius:8px;
+      background:#e5e7eb;
+      text-align:center;
+      cursor:pointer;
+    }
+    .cal-cell.header{
+      background:#cbd5f5;
+      font-weight:600;
+      cursor:default;
+    }
+    .cal-cell.read{
+      background:#93c5fd;
+    }
+    .cal-cell.active{
+      outline:2px solid #2563eb;
+      background:#dbeafe;
+    }
+
+    /* Chapter chips */
+    .chip{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:12px;
+      background:#f1f5f9;
+      margin:3px;
+    }
+
+    .comment{
+      padding:8px 10px;
+      border-radius:8px;
+      background:#f9fafb;
+      border:1px solid #e5e7eb;
+      font-size:13px;
+      margin-bottom:6px;
+    }
+
+    @media(max-width:720px){
+      header{flex-direction:column;align-items:flex-start}
+    }
+  </style>
 </head>
 <body>
-
 <div class="container">
 
-<header>
-<h1>📚 Library Habit Tracker</h1>
-<p class="meta" id="greeting"></p>
-</header>
+  <!-- HEADER -->
+  <header>
+    <div>
+      <h1>📚 Library Habit Tracker</h1>
+      <div class="meta" id="greetingText">Welcome back!</div>
+    </div>
+    <div class="meta">Track your mood, books & reading time</div>
+  </header>
 
-<!-- FEELING -->
-<div class="card">
-<label>How are you feeling today?</label>
-<select id="feeling">
-<option>Select mood</option>
-<option>😊 Happy</option>
-<option>😌 Calm</option>
-<option>🤩 Motivated</option>
-<option>😔 Tired</option>
-<option>😤 Stressed</option>
-<option>😴 Sleepy</option>
-</select>
-<p class="meta">Suggestion: <b id="suggestion"></b></p>
-</div>
+  <!-- 1. HOW ARE YOU FEELING -->
+  <div class="card">
+    <label>How are you feeling today?</label>
+    <select id="feeling">
+      <option>Select feeling</option>
+      <option>😊 Happy</option>
+      <option>😌 Calm</option>
+      <option>🤩 Motivated</option>
+      <option>😔 Tired</option>
+      <option>😤 Stressed</option>
+      <option>😴 Sleepy</option>
+    </select>
+    <p class="meta">Suggestion: <b id="moodSuggestion">—</b></p>
+  </div>
 
-<!-- SEARCH -->
-<div class="card">
-<label>Search Computer Science Book</label>
-<div class="row">
-<input id="searchBox" placeholder="Algorithms, DBMS, OS..." />
-<button class="btn" onclick="doSearch()">Search</button>
-</div>
-<div id="searchResults"></div>
-</div>
+  <!-- 2. SEARCH A COMPUTER SCIENCE BOOK -->
+  <div class="card">
+    <label>Search a Computer Science Book</label>
+    <div class="row">
+      <div class="col">
+        <input id="searchBox" placeholder="e.g. Algorithms, Operating System, DBMS..." />
+      </div>
+      <button class="btn small" onclick="doSearch()">Search</button>
+    </div>
+    <div id="searchResults" style="margin-top:8px;"></div>
+  </div>
 
-<!-- CALENDAR -->
-<div class="card">
-<label>Reading Calendar</label>
-<div class="row" style="justify-content:space-between">
-<button class="btn-ghost" onclick="prevMonth()">◀</button>
-<span id="monthLabel"></span>
-<button class="btn-ghost" onclick="nextMonth()">▶</button>
-</div>
-<div id="calendar"></div>
-<p class="meta" id="calendarInfo">Click a date to add reading minutes</p>
-</div>
+  <!-- 3. CALENDAR -->
+  <div class="card">
+    <label>Reading Calendar</label>
+    <div class="row" style="align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <button class="btn-ghost small" id="prevBtn">◀ Prev</button>
+      <span class="meta" id="monthLabel"></span>
+      <button class="btn-ghost small" id="nextBtn">Next ▶</button>
+    </div>
+    <div id="calendar"></div>
+    <p class="meta" id="calendarInfo">
+      Click a date to add reading minutes (it will update the graph below).
+    </p>
+  </div>
 
-<!-- GRAPH -->
-<div class="card">
-<label>Monthly Reading Graph</label>
-<canvas id="monthChart" height="140"></canvas>
-</div>
+  <!-- 4. GRAPH -->
+  <div class="card">
+    <label>📊 Monthly Reading Graph</label>
+    <p class="meta">Bars show minutes read per day in the selected month.</p>
+    <canvas id="monthChart" height="130"></canvas>
+  </div>
 
-<!-- CHAPTER -->
-<div class="card">
-<label>Chapter Progress</label>
-<div class="row">
-<div style="flex:1">
-<input id="totalChapters" type="number" placeholder="Total chapters">
-</div>
-<div style="flex:1">
-<input id="doneChapters" type="number" placeholder="Completed chapters">
-</div>
-</div>
-<button class="btn" style="margin-top:6px" onclick="updateChapters()">Update</button>
-<p class="meta" id="chapterInfo"></p>
-</div>
+  <!-- 5. CHAPTER PROGRESS -->
+  <div class="card">
+    <label>📚 Chapter Progress (Manual)</label>
+    <div class="row">
+      <div class="col">
+        <span class="meta">Total chapters</span>
+        <input id="totalChapters" type="number" min="0" placeholder="e.g. 10" />
+      </div>
+      <div class="col">
+        <span class="meta">Completed chapters</span>
+        <input id="doneChapters" type="number" min="0" placeholder="e.g. 3" />
+      </div>
+    </div>
+    <button class="btn small" style="margin-top:6px;" onclick="updateChapters()">Update</button>
+    <p class="meta" id="chapterInfo">No chapter progress yet.</p>
+    <div id="chapterChips"></div>
+  </div>
 
-<!-- PREDICTION -->
-<div class="card">
-<label>Page-Time Prediction</label>
-<div class="row">
-<div style="flex:1"><input id="totalPages" placeholder="Total pages"></div>
-<div style="flex:1"><input id="pagesPerDay" placeholder="Pages per day"></div>
-</div>
-<button class="btn" style="margin-top:6px" onclick="predictFinish()">Predict</button>
-<p class="meta" id="predictionResult"></p>
-</div>
+  <!-- 6. PAGE-TIME PREDICTION -->
+  <div class="card">
+    <label>📖 Page–Time Prediction</label>
+    <div class="row">
+      <div class="col">
+        <span class="meta">Total pages of book</span>
+        <input id="totalPages" type="number" min="1" placeholder="e.g. 250" />
+      </div>
+      <div class="col">
+        <span class="meta">Pages you read per day</span>
+        <input id="pagesPerDay" type="number" min="1" placeholder="e.g. 20" />
+      </div>
+    </div>
+    <button class="btn small" style="margin-top:6px;" onclick="predictFinish()">Predict Finish Time</button>
+    <p class="meta" id="predictionResult">Enter pages to see how many days it will take.</p>
+  </div>
 
-<!-- AI SUMMARY -->
-<div class="card">
-<label>AI Summary (Demo)</label>
-<div class="row">
-<input id="summaryBookId" placeholder="Book ID">
-<button class="btn" onclick="generateSummary()">Generate</button>
-</div>
-<p class="meta" id="summaryText"></p>
-</div>
+  <!-- 7. AI SUMMARY -->
+  <div class="card">
+    <label>🤖 AI Summary (demo)</label>
+    <div class="row">
+      <div class="col">
+        <input id="summaryBookId" placeholder="Book ID (e.g. 1)" />
+      </div>
+      <button class="btn small" onclick="generateSummary()">Generate Summary</button>
+    </div>
+    <p class="meta" id="summaryResult" style="margin-top:6px;">
+      AI will give a short summary here (demo text).
+    </p>
+  </div>
 
-<!-- COMMENTS -->
-<div class="card">
-<label>Comments</label>
-<textarea id="commentInput"></textarea>
-<button class="btn" onclick="addComment()">Add</button>
-<div id="comments"></div>
-</div>
+  <!-- 8. COMMENTS -->
+  <div class="card">
+    <label>💬 Comment / Reflection</label>
+    <textarea id="commentInput" placeholder="Write what you learned or how you felt after reading today..."></textarea>
+    <button class="btn small" style="margin-top:6px;" onclick="addComment()">Add Comment</button>
+    <div id="commentsList" style="margin-top:10px;"></div>
+  </div>
 
 </div>
 
 <script>
-// Greeting
-const h=new Date().getHours();
-document.getElementById("greeting").innerText =
-h<12?"Good Morning 🌅":h<18?"Good Afternoon 🌤":"Good Evening 🌙";
+// ====== GREETING ======
+(function(){
+  const h = new Date().getHours();
+  let txt = "Welcome back!";
+  if(h < 12) txt = "Good morning, keep learning ☀";
+  else if(h < 18) txt = "Good afternoon, great time to read 📖";
+  else txt = "Good evening, relax with a good book 🌙";
+  document.getElementById("greetingText").textContent = txt;
+})();
 
-// Mood
-const suggestion={
-"😊 Happy":"Read challenging topics.",
-"😌 Calm":"Best for theory reading.",
-"🤩 Motivated":"Finish one whole chapter.",
-"😔 Tired":"Read summary only.",
-"😤 Stressed":"Keep it light & short.",
-"😴 Sleepy":"Read for 5 minutes only."
-};
-document.getElementById("feeling").onchange=e=>{
-document.getElementById("suggestion").innerText=suggestion[e.target.value]||"";
+// ====== MOOD SUGGESTION ======
+const moodMap = {
+  "😊 Happy":"You can try tough CS topics today – your mood supports deep study!",
+  "😌 Calm":"Great time for theory and long chapters.",
+  "🤩 Motivated":"Perfect moment to finish a full chapter or 40+ minutes.",
+  "😔 Tired":"Do light revision or summaries only – small steps are ok.",
+  "😤 Stressed":"Read short, easy topics. Do not overload yourself.",
+  "😴 Sleepy":"Just skim key points or diagrams for 5–10 minutes."
 };
 
-// Dummy Search
-function doSearch(){
-let q=searchBox.value;
-searchResults.innerHTML=`
-<div class="meta">Showing CS books for: <b>${q}</b></div>
-<ul>
-<li>Operating System</li>
-<li>DBMS</li>
-<li>Computer Networks</li>
-<li>Data Structures</li>
-</ul>
-`;
+document.getElementById("feeling").addEventListener("change", e=>{
+  const v = e.target.value;
+  document.getElementById("moodSuggestion").textContent = moodMap[v] || "—";
+});
+
+// ====== SEARCH (expects /api/search backend) ======
+async function doSearch(){
+  const q   = document.getElementById("searchBox").value.trim();
+  const out = document.getElementById("searchResults");
+  out.innerHTML = "<span class='meta'>Loading books...</span>";
+  try{
+    const res = await fetch("/api/search?q=" + encodeURIComponent(q));
+    const data = await res.json();
+    if(!Array.isArray(data) || data.length === 0){
+      out.innerHTML = "<p class='meta'>No Computer Science books found.</p>";
+      return;
+    }
+    out.innerHTML = "";
+    data.forEach(b=>{
+      out.innerHTML += `
+        <div style="padding:6px 8px;border-radius:8px;border:1px solid #e5e7eb;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <b>${b.title}</b><br>
+            <span class="meta">${b.author || ""}</span>
+          </div>
+          <button class="btn small" onclick="location.href='/read-book/${b.id}'">Read</button>
+        </div>
+      `;
+    });
+  }catch(err){
+    console.error(err);
+    out.innerHTML = "<p class='meta'>Error while searching books.</p>";
+  }
 }
 
-// Calendar & Graph
-let readingData={};
-let currentMonth=new Date().getMonth();
-let currentYear=new Date().getFullYear();
-let chart;
+// ====== READING DATA (FOR CALENDAR + GRAPH) ======
+const readingData = {}; // { "YYYY-MM-DD": minutes }
 
-function key(d){return d.toISOString().slice(0,10);}
-function getMins(d){return readingData[key(d)]||0;}
-function setMins(d,m){readingData[key(d)]=(readingData[key(d)]||0)+m;}
+function dateKey(d){ return d.toISOString().slice(0,10); }
+function getMinutesForDate(d){
+  return readingData[dateKey(d)] || 0;
+}
+function addMinutesForDate(d, mins){
+  if(mins <= 0) return;
+  const k = dateKey(d);
+  readingData[k] = (readingData[k] || 0) + mins;
+}
+
+// ====== CALENDAR ======
+let currentMonth = (new Date()).getMonth();
+let currentYear  = (new Date()).getFullYear();
+let monthChart = null;
 
 function renderCalendar(){
-calendar.innerHTML="";
-const days=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-days.forEach(h=>calendar.innerHTML+=<div class="cal-cell header">${h}</div>);
+  const cal   = document.getElementById("calendar");
+  const label = document.getElementById("monthLabel");
+  const info  = document.getElementById("calendarInfo");
 
-const first=new Date(currentYear,currentMonth,1).getDay();
-const total=new Date(currentYear,currentMonth+1,0).getDate();
-monthLabel.innerText=
-new Date(currentYear,currentMonth).toLocaleDateString("en",{month:"long",year:"numeric"});
+  cal.innerHTML = "";
 
-for(let i=0;i<first;i++)calendar.innerHTML+=<div></div>;
+  const weekdays = ["S","M","T","W","T","F","S"];
+  weekdays.forEach(d=>{
+    const head = document.createElement("div");
+    head.className = "cal-cell header";
+    head.textContent = d;
+    cal.appendChild(head);
+  });
 
-for(let d=1;d<=total;d++){
-let date=new Date(currentYear,currentMonth,d);
-let cell=document.createElement("div");
-cell.className="cal-cell";
-cell.textContent=d;
+  const firstDay    = new Date(currentYear, currentMonth, 1).getDay();
+  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+  label.textContent = new Date(currentYear, currentMonth).toLocaleDateString("en", {month:"long", year:"numeric"});
 
-if(getMins(date)>0)cell.classList.add("read");
+  // empty cells
+  for(let i=0; i<firstDay; i++){
+    const empty = document.createElement("div");
+    empty.className = "cal-cell";
+    empty.style.visibility = "hidden";
+    cal.appendChild(empty);
+  }
 
-cell.onclick=()=>{
-let m=prompt("Minutes read?");
-if(m>0){setMins(date,parseInt(m));renderCalendar();updateChart();}
-};
-calendar.appendChild(cell);
+  for(let d=1; d<=daysInMonth; d++){
+    const cell = document.createElement("div");
+    cell.className = "cal-cell";
+    cell.textContent = d;
+
+    const dt   = new Date(currentYear, currentMonth, d);
+    const mins = getMinutesForDate(dt);
+    if(mins > 0){
+      cell.classList.add("read");
+    }
+
+    cell.onclick = ()=>{
+      document.querySelectorAll(".cal-cell").forEach(c=>c.classList.remove("active"));
+      cell.classList.add("active");
+
+      const extra = prompt("How many minutes did you read? (This will be added)", "20");
+      const val   = parseInt(extra, 10);
+      if(!isNaN(val) && val > 0){
+        addMinutesForDate(dt, val);
+        const nowMins = getMinutesForDate(dt);
+        info.textContent = ${d}/${currentMonth+1}/${currentYear} — ${nowMins} minute(s) logged.;
+        renderCalendar();  // re-render to recolor
+      }
+    };
+
+    cal.appendChild(cell);
+  }
+
+  updateChart(); // graph always sync with month
 }
-updateChart();
+
+function prevMonth(){
+  currentMonth--;
+  if(currentMonth < 0){
+    currentMonth = 11;
+    currentYear--;
+  }
+  document.getElementById("calendarInfo").textContent =
+    "Click a date to add reading minutes (it will update the graph below).";
+  renderCalendar();
+}
+function nextMonth(){
+  currentMonth++;
+  if(currentMonth > 11){
+    currentMonth = 0;
+    currentYear++;
+  }
+  document.getElementById("calendarInfo").textContent =
+    "Click a date to add reading minutes (it will update the graph below).";
+  renderCalendar();
 }
 
-function prevMonth(){currentMonth--;if(currentMonth<0){currentMonth=11;currentYear--;}renderCalendar();}
-function nextMonth(){currentMonth++;if(currentMonth>11){currentMonth=0;currentYear++;}renderCalendar();}
+document.getElementById("prevBtn").addEventListener("click", prevMonth);
+document.getElementById("nextBtn").addEventListener("click", nextMonth);
 
+// ====== GRAPH (Chart.js) ======
 function updateChart(){
-const labels=[], values=[];
-let days=new Date(currentYear,currentMonth+1,0).getDate();
+  const canvas = document.getElementById("monthChart");
+  if(!canvas) return;
 
-for(let d=1;d<=days;d++){
-labels.push(d);
-values.push(getMins(new Date(currentYear,currentMonth,d)));
+  const daysInMonth = new Date(currentYear, currentMonth+1, 0).getDate();
+  const labels = [];
+  const values = [];
+
+  for(let d=1; d<=daysInMonth; d++){
+    labels.push(String(d));
+    const dt = new Date(currentYear, currentMonth, d);
+    values.push(getMinutesForDate(dt));
+  }
+
+  if(monthChart) monthChart.destroy();
+
+  const ctx = canvas.getContext("2d");
+  monthChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: values.map(v => v>0 ? "#3b82f6" : "#e5e7eb"),
+        borderRadius: 6
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero:true,
+          title:{display:true,text:"Minutes"}
+        }
+      },
+      plugins:{legend:{display:false}}
+    }
+  });
 }
 
-if(chart)chart.destroy();
-chart=new Chart(monthChart,{
-type:"bar",
-data:{labels,datasets:[{data:values,backgroundColor:"#3b82f6"}]},
-options:{scales:{y:{beginAtZero:true}},plugins:{legend:{display:false}}}
-});
-}
-
-// Chapter
+// ====== CHAPTER PROGRESS ======
 function updateChapters(){
-let t=+totalChapters.value||0;
-let d=+doneChapters.value||0;
-if(d>t)d=t;
-chapterInfo.innerText=${d}/${t} chapters completed;
+  let total = parseInt(document.getElementById("totalChapters").value,10);
+  let done  = parseInt(document.getElementById("doneChapters").value,10);
+  if(isNaN(total) || total < 0) total = 0;
+  if(isNaN(done)  || done  < 0) done  = 0;
+  if(done > total) done = total;
+
+  document.getElementById("totalChapters").value = total;
+  document.getElementById("doneChapters").value  = done;
+
+  const info  = document.getElementById("chapterInfo");
+  const chips = document.getElementById("chapterChips");
+  if(total === 0){
+    info.textContent = "Enter total and completed chapters to see progress.";
+    chips.innerHTML  = "";
+    return;
+  }
+
+  const percent = (done/total)*100;
+  info.textContent = Completed ${done} of ${total} chapters (${percent.toFixed(1)}%).;
+
+  chips.innerHTML = "";
+  for(let i=1; i<=total; i++){
+    const span = document.createElement("span");
+    span.className = "chip";
+    span.textContent = "Ch " + i;
+    if(i <= done){
+      span.style.background = "#bbf7d0";
+    }
+    chips.appendChild(span);
+  }
 }
 
-// Prediction
+// ====== PAGE–TIME PREDICTION ======
 function predictFinish(){
-let t=+totalPages.value;
-let p=+pagesPerDay.value;
-if(!t||!p){predictionResult.innerText="Enter both values";return;}
-predictionResult.innerText=Finish in about ${Math.ceil(t/p)} days;
+  const total = parseInt(document.getElementById("totalPages").value,10);
+  const perDay= parseInt(document.getElementById("pagesPerDay").value,10);
+  const out   = document.getElementById("predictionResult");
+
+  if(isNaN(total) || total <= 0 || isNaN(perDay) || perDay <= 0){
+    out.textContent = "Please enter valid total pages and pages per day.";
+    return;
+  }
+
+  const days = Math.ceil(total / perDay);
+  out.textContent = At your current speed, you’ll finish this book in about ${days} day(s).;
 }
 
-// AI Summary
+// ====== AI SUMMARY (DEMO) ======
 function generateSummary(){
-summaryText.innerText="This book explains core CS topics clearly and practically.";
+  const id  = document.getElementById("summaryBookId").value.trim();
+  const out = document.getElementById("summaryResult");
+  if(!id){
+    out.textContent = "Please enter a Book ID.";
+    return;
+  }
+  out.textContent = "Generating summary (demo)...";
+  setTimeout(()=>{
+    out.textContent = Book ${id}: This book explains core CS concepts in a simple, student-friendly way with examples and practice problems. (Demo summary.);
+  }, 800);
 }
 
-// Comments
+// ====== COMMENTS ======
 function addComment(){
-let c=commentInput.value;
-if(!c)return;
-comments.innerHTML=<div class="comment">${c}</div>+comments.innerHTML;
-commentInput.value="";
+  const box = document.getElementById("commentInput");
+  const txt = box.value.trim();
+  if(!txt){
+    alert("Please write a comment first.");
+    return;
+  }
+  const list = document.getElementById("commentsList");
+  const div  = document.createElement("div");
+  const now  = new Date().toLocaleString();
+  div.className = "comment";
+  div.innerHTML = <div class="meta">${now}</div><div>${txt}</div>;
+  list.prepend(div);
+  box.value = "";
 }
 
 // INIT
 renderCalendar();
 </script>
-
 </body>
 </html>
