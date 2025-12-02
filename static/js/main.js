@@ -1,50 +1,92 @@
-// ========== SIGNUP ==========
-function signupUser(event) {
-    event.preventDefault();
+// MAIN.JS
+// Handles signup + login and redirects
 
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
+async function signupUser(event) {
+  event.preventDefault();
+  const name = document.getElementById("su_name").value.trim();
+  const email = document.getElementById("su_email").value.trim();
+  const password = document.getElementById("su_password").value.trim();
+  const msg = document.getElementById("signupMessage");
 
-    fetch("/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "exists") {
-            alert("⚠ Email already registered!");
-        } 
-        else if (data.status === "success") {
-            alert("🎉 Signup Successful! Login now.");
-            window.location.href = "/login";
-        }
-    })
-    .catch(err => console.log("Signup Error:", err));
+  if (!name || !email || !password) {
+    msg.style.color = "salmon";
+    msg.textContent = "Please fill all fields.";
+    return;
+  }
+
+  msg.style.color = "#e5e7eb";
+  msg.textContent = "Creating your account...";
+
+  try {
+    const res = await fetch("/api/signup", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ name, email, password })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      msg.style.color = "salmon";
+      msg.textContent = data.message || "Sign up failed.";
+      return;
+    }
+
+    msg.style.color = "#4ade80";
+    msg.textContent = "Signup successful! Redirecting to login...";
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 1200);
+
+  } catch (err) {
+    console.error(err);
+    msg.style.color = "salmon";
+    msg.textContent = "Server error. Please try again.";
+  }
 }
 
 
-// ========== LOGIN ==========
-function login(event) {
-    event.preventDefault();
+async function loginUser(event) {
+  event.preventDefault();
+  const email = document.getElementById("li_email").value.trim();
+  const password = document.getElementById("li_password").value.trim();
+  const msg = document.getElementById("loginMessage");
 
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
+  if (!email || !password) {
+    msg.style.color = "salmon";
+    msg.textContent = "Please enter email and password.";
+    return;
+  }
 
-    fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "success") {
-            window.location.href = "/dashboard";
-        } 
-        else {
-            alert("❌ Invalid email or password");
-        }
-    })
-    .catch(err => console.log("Login Error:", err));
+  msg.style.color = "#e5e7eb";
+  msg.textContent = "Checking your credentials...";
+
+  try {
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      msg.style.color = "salmon";
+      msg.textContent = data.message || "Login failed.";
+      return;
+    }
+
+    msg.style.color = "#4ade80";
+    msg.textContent = "Login successful! Opening dashboard...";
+
+    const redirectUrl = data.redirect || "/dashboard";
+    setTimeout(() => {
+      window.location.href = redirectUrl;
+    }, 900);
+
+  } catch (err) {
+    console.error(err);
+    msg.style.color = "salmon";
+    msg.textContent = "Server error. Please try again.";
+  }
 }
