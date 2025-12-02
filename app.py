@@ -6,7 +6,7 @@ app = Flask(__name__)
 app.secret_key = "super-secret-key"   # koi bhi random string
 
 # ----------------- DATABASE SETUP -----------------
-BASE_DIR = os.path.abspath(os.path.dirname(_file_))
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE_DIR, "users.db")
 
 
@@ -187,3 +187,4 @@ def read_book(book_id):
 # ----------------- RUN APP -----------------
 if __name__ == "__main__":
     app.run(debug=True)
+
