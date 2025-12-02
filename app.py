@@ -1,107 +1,97 @@
 from flask import Flask, render_template, request, jsonify, abort
+import requests
 
 app = Flask(__name__)
 
-# ---------------- DEMO COMPUTER SCIENCE BOOKS ----------------
-BOOKS = {
-    1: {
-        "id": 1,
-        "title": "Introduction to Algorithms",
-        "author": "Cormen, Leiserson, Rivest, Stein",
-        "category": "computer science",
-        "description": "Classic algorithms book covering sorting, searching, dynamic programming and graph algorithms.",
-        "chapters": [
-            {"number": 1, "title": "Foundations", "content": "Basic concepts, asymptotic notation, algorithm analysis."},
-            {"number": 2, "title": "Sorting and Order Statistics", "content": "Insertion sort, merge sort, heapsort, quicksort."},
-            {"number": 3, "title": "Data Structures", "content": "Stacks, queues, linked lists, trees and hash tables."}
-        ]
-    },
-    2: {
-        "id": 2,
-        "title": "Operating System Concepts",
-        "author": "Silberschatz, Galvin, Gagne",
-        "category": "computer science",
-        "description": "Fundamentals of processes, threads, scheduling, memory management and file systems.",
-        "chapters": [
-            {"number": 1, "title": "Introduction to Operating Systems", "content": "What an OS does, different types of operating systems."},
-            {"number": 2, "title": "Processes", "content": "Process states, PCB, context switching and scheduling."},
-            {"number": 3, "title": "Memory Management", "content": "Paging, segmentation, virtual memory and page replacement."}
-        ]
-    },
-    3: {
-        "id": 3,
-        "title": "Computer Networks",
-        "author": "Kurose & Ross",
-        "category": "computer science",
-        "description": "Layered view of networking: application, transport, network and link layers.",
-        "chapters": [
-            {"number": 1, "title": "Computer Networks and the Internet", "content": "Network edges, core, delay and loss."},
-            {"number": 2, "title": "Application Layer", "content": "Web, HTTP, DNS, client-server and P2P models."},
-            {"number": 3, "title": "Transport Layer", "content": "UDP, TCP, reliability and congestion control."}
-        ]
-    },
-    4: {
-        "id": 4,
-        "title": "Database System Concepts",
-        "author": "Silberschatz, Korth, Sudarshan",
-        "category": "computer science",
-        "description": "Relational model, SQL, normalization, transactions and recovery.",
-        "chapters": [
-            {"number": 1, "title": "Introduction to Databases", "content": "What is a DBMS, advantages and architecture."},
-            {"number": 2, "title": "Relational Model", "content": "Relations, keys, constraints and relational algebra."},
-            {"number": 3, "title": "SQL", "content": "Basic queries, joins, subqueries and views."}
-        ]
-    },
-}
-# ---------------------------------------------------------------
+GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes"
 
 
 @app.route("/")
 def home():
-    # seedha dashboard kholega
+    # Main dashboard page
     return render_template("dashboard.html")
 
 
 @app.route("/api/search")
 def api_search():
     """
-    Search Computer Science books.
-    - If q empty: return all CS books
-    - Else filter by title/author/description
+    Online search:
+    - User jo bhi type karega (q), usko Google Books pe bhejenge
+    - Sirf computer science related results try karenge
+    - Return: id, title, author, description ka short part, preview_link
     """
-    q = request.args.get("q", "").strip().lower()
+    q = request.args.get("q", "").strip()
+    if not q:
+        # agar blank hai to default CS query
+        q = "computer science"
+
+    params = {
+        "q": q + " subject:computer science",
+        "maxResults": 20,
+        "printType": "books",
+    }
+
+    try:
+        r = requests.get(GOOGLE_BOOKS_API, params=params, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+    except Exception as e:
+        print("Google Books error:", e)
+        return jsonify([])
 
     results = []
-    for b in BOOKS.values():
-        if b.get("category", "").lower() != "computer science":
-            continue
+    for item in data.get("items", []):
+        volume_id = item.get("id")
+        info = item.get("volumeInfo", {}) or {}
+        title = info.get("title", "Untitled")
+        authors = ", ".join(info.get("authors", []))
+        desc = info.get("description", "") or ""
+        # description thoda short kar dete hain
+        if len(desc) > 220:
+            desc = desc[:220] + "..."
 
-        if q == "":
-            results.append({
-                "id": b["id"],
-                "title": b["title"],
-                "author": b["author"],
-            })
-        else:
-            blob = (b["title"] + " " + b["author"] + " " + b["description"]).lower()
-            if q in blob:
-                results.append({
-                    "id": b["id"],
-                    "title": b["title"],
-                    "author": b["author"],
-                })
+        preview = info.get("previewLink", "")
+
+        results.append({
+            "id": volume_id,
+            "title": title,
+            "author": authors,
+            "description": desc,
+            "preview_link": preview
+        })
 
     return jsonify(results)
 
 
-@app.route("/read-book/<int:book_id>")
-def read_book(book_id):
+@app.route("/read-book/<volume_id>")
+def read_book(volume_id):
     """
-    Reading mode page for a single book.
+    Reading mode page for one book.
+    Hum yahan se bhi Google Books API se detail laayenge.
     """
-    book = BOOKS.get(book_id)
-    if not book:
+    try:
+        r = requests.get(f"{GOOGLE_BOOKS_API}/{volume_id}", timeout=10)
+        if r.status_code != 200:
+            return abort(404)
+        item = r.json()
+    except Exception as e:
+        print("detail error:", e)
         return abort(404)
+
+    info = item.get("volumeInfo", {}) or {}
+
+    book = {
+        "id": volume_id,
+        "title": info.get("title", "Untitled"),
+        "author": ", ".join(info.get("authors", [])),
+        "description": info.get("description", ""),
+        "page_count": info.get("pageCount"),
+        "publisher": info.get("publisher"),
+        "published_date": info.get("publishedDate"),
+        "categories": ", ".join(info.get("categories", [])),
+        "preview_link": info.get("previewLink", "")
+    }
+
     return render_template("read_book.html", book=book)
 
 
