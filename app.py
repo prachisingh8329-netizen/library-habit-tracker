@@ -1,235 +1,204 @@
-from flask import Flask, render_template, request, jsonify, abort
+from flask import (
+    Flask, render_template, request,
+    jsonify, session, redirect, url_for, abort
+)
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
-import requests
 
-app = Flask(__name__)
+app = Flask(_name_)
+app.secret_key = "change-this-secret-key"  # koi random string rakh lena
 
-# -------------- CONFIG --------------
-DB_PATH = "users.db"
-GOOGLE_BOOKS_API = "https://www.googleapis.com/books/v1/volumes"
-# ------------------------------------
+DB_NAME = "users.db"
 
-
-# -------------- DB HELPER --------------
+# ---------- USER DB SETUP ----------
 def init_db():
-    """Create users table if not exists."""
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute(
-        """
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL
-        );
-        """
-    )
+            password_hash TEXT NOT NULL
+        )
+    """)
     conn.commit()
     conn.close()
 
+init_db()
 
-def get_db():
-    return sqlite3.connect(DB_PATH)
+# ---------- DEMO BOOK DATA ----------
+BOOKS = {
+    1: {
+        "id": 1,
+        "title": "Introduction to Algorithms",
+        "author": "Cormen, Leiserson, Rivest, Stein",
+        "category": "computer science",
+        "description": "Classic algorithms book covering sorting, searching, dynamic programming and graph algorithms.",
+        "chapters": [
+            {"number": 1, "title": "Foundations", "content": "Basic concepts, asymptotic notation, algorithm analysis."},
+            {"number": 2, "title": "Sorting and Order Statistics", "content": "Insertion sort, merge sort, heapsort, quicksort."},
+            {"number": 3, "title": "Data Structures", "content": "Stacks, queues, linked lists, trees and hash tables."}
+        ]
+    },
+    2: {
+        "id": 2,
+        "title": "Operating System Concepts",
+        "author": "Silberschatz, Galvin, Gagne",
+        "category": "computer science",
+        "description": "Fundamentals of processes, threads, scheduling, memory management and file systems.",
+        "chapters": [
+            {"number": 1, "title": "Introduction to Operating Systems", "content": "What an OS does, types of OS and structure."},
+            {"number": 2, "title": "Processes", "content": "Process states, PCB, context switching and scheduling."},
+            {"number": 3, "title": "Memory Management", "content": "Paging, segmentation, virtual memory and page replacement."}
+        ]
+    },
+    3: {
+        "id": 3,
+        "title": "Computer Networks",
+        "author": "Kurose & Ross",
+        "category": "computer science",
+        "description": "Layered view of networking: application, transport, network and link layers.",
+        "chapters": [
+            {"number": 1, "title": "Introduction", "content": "Network edges, core, delay, loss and Internet structure."},
+            {"number": 2, "title": "Application Layer", "content": "Web, HTTP, DNS, client-server and P2P."},
+            {"number": 3, "title": "Transport Layer", "content": "UDP, TCP, reliability and congestion control."}
+        ]
+    },
+    4: {
+        "id": 4,
+        "title": "Database System Concepts",
+        "author": "Silberschatz, Korth, Sudarshan",
+        "category": "computer science",
+        "description": "Relational model, SQL, normalization, transactions and recovery.",
+        "chapters": [
+            {"number": 1, "title": "Introduction to Databases", "content": "What is a DBMS, advantages, architecture."},
+            {"number": 2, "title": "Relational Model", "content": "Relations, keys, constraints, relational algebra."},
+            {"number": 3, "title": "SQL", "content": "Basic queries, joins, subqueries and views."}
+        ]
+    },
+}
 
 
-# initialize on startup
-if not os.path.exists(DB_PATH):
-    init_db()
-# ---------------------------------------
-
-
-# -------------- PAGE ROUTES --------------
-
+# ---------- AUTH PAGES ----------
 @app.route("/")
-def landing_page():
-    """
-    Get Started / home page.
-    Make sure you have templates/index.html
-    """
-    return render_template("index.html")
+def root():
+    # agar login hai to dashboard, nahi to login
+    if "user_id" in session:
+        return redirect(url_for("dashboard"))
+    return redirect(url_for("login_page"))
 
 
 @app.route("/signup")
 def signup_page():
-    """
-    Signup UI page.
-    templates/signup.html (your nice glassmorphism signup)
-    """
     return render_template("signup.html")
 
 
 @app.route("/login")
 def login_page():
-    """
-    Login UI page.
-    templates/login.html
-    """
     return render_template("login.html")
 
 
 @app.route("/dashboard")
-def dashboard_page():
-    """
-    Main dashboard UI page.
-    templates/dashboard.html (the big tracker you and I made)
-    """
-    return render_template("dashboard.html")
+def dashboard():
+    if "user_id" not in session:
+        return redirect(url_for("login_page"))
+    return render_template("dashboard.html", user_name=session.get("user_name"))
 
 
-# -------------- AUTH APIs --------------
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login_page"))
 
+
+# ---------- AUTH APIs ----------
 @app.route("/api/signup", methods=["POST"])
 def api_signup():
-    """
-    Frontend se expected JSON:
-    { "name": "...", "email": "...", "password": "..." }
-    """
-    data = request.get_json(force=True) or {}
+    data = request.get_json() or {}
     name = data.get("name", "").strip()
     email = data.get("email", "").strip().lower()
-    password = data.get("password", "").strip()
+    password = data.get("password", "")
 
     if not name or not email or not password:
-        return jsonify({"success": False, "message": "All fields are required."}), 400
+        return jsonify({"ok": False, "message": "All fields are required."}), 400
+
+    password_hash = generate_password_hash(password)
 
     try:
-        conn = get_db()
-        c = conn.cursor()
-        c.execute(
-            "INSERT INTO users (name, email, password) VALUES (?, ?, ?)",
-            (name, email, password),
+        conn = sqlite3.connect(DB_NAME)
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO users (name, email, password_hash) VALUES (?,?,?)",
+            (name, email, password_hash),
         )
         conn.commit()
         conn.close()
     except sqlite3.IntegrityError:
-        # email already exists
-        return jsonify({"success": False, "message": "Email already registered."}), 409
-    except Exception as e:
-        print("SIGNUP ERROR:", e)
-        return jsonify({"success": False, "message": "Server error."}), 500
+        return jsonify({"ok": False, "message": "Email already registered."}), 400
 
-    return jsonify({"success": True, "message": "Signup successful!"})
+    return jsonify({"ok": True, "message": "Signup successful. Please login."})
 
 
 @app.route("/api/login", methods=["POST"])
 def api_login():
-    """
-    Frontend se expected JSON:
-    { "email": "...", "password": "..." }
-    """
-    data = request.get_json(force=True) or {}
+    data = request.get_json() or {}
     email = data.get("email", "").strip().lower()
-    password = data.get("password", "").strip()
+    password = data.get("password", "")
 
     if not email or not password:
-        return jsonify({"success": False, "message": "Email and password required."}), 400
+        return jsonify({"ok": False, "message": "Email and password are required."}), 400
 
-    try:
-        conn = get_db()
-        c = conn.cursor()
-        c.execute(
-            "SELECT id FROM users WHERE email = ? AND password = ?",
-            (email, password),
-        )
-        row = c.fetchone()
-        conn.close()
-    except Exception as e:
-        print("LOGIN ERROR:", e)
-        return jsonify({"success": False, "message": "Server error."}), 500
+    conn = sqlite3.connect(DB_NAME)
+    cur = conn.cursor()
+    cur.execute("SELECT id, name, password_hash FROM users WHERE email=?", (email,))
+    row = cur.fetchone()
+    conn.close()
 
     if not row:
-        return jsonify({"success": False, "message": "Invalid email or password."}), 401
+        return jsonify({"ok": False, "message": "Invalid email or password."}), 401
 
-    # Simple response: frontend redirect karega /dashboard pe
-    return jsonify({"success": True, "message": "Login successful!", "redirect": "/dashboard"})
+    user_id, name, pwd_hash = row
+
+    if not check_password_hash(pwd_hash, password):
+        return jsonify({"ok": False, "message": "Invalid email or password."}), 401
+
+    # success
+    session["user_id"] = user_id
+    session["user_name"] = name
+    return jsonify({"ok": True, "message": "Login successful."})
 
 
-# -------------- ONLINE BOOK SEARCH (GOOGLE BOOKS) --------------
-
+# ---------- BOOK SEARCH + READER ----------
 @app.route("/api/search")
 def api_search():
-    """
-    Online search:
-    - User jo bhi type karega (q), usko Google Books pe bhejenge
-    - Sirf computer science related results try karenge
-    - Return: id, title, author, description ka short part, preview_link
-    """
-    q = request.args.get("q", "").strip()
-    if not q:
-        # agar blank hai to default CS query
-        q = "computer science"
-
-    params = {
-        "q": q + " subject:computer science",
-        "maxResults": 20,
-        "printType": "books",
-    }
-
-    try:
-        r = requests.get(GOOGLE_BOOKS_API, params=params, timeout=10)
-        r.raise_for_status()
-        data = r.json()
-    except Exception as e:
-        print("Google Books error:", e)
-        return jsonify([])
-
+    q = request.args.get("q", "").strip().lower()
     results = []
-    for item in data.get("items", []):
-        volume_id = item.get("id")
-        info = item.get("volumeInfo", {}) or {}
-        title = info.get("title", "Untitled")
-        authors = ", ".join(info.get("authors", []))
-        desc = info.get("description", "") or ""
-        if len(desc) > 220:
-            desc = desc[:220] + "..."
 
-        preview = info.get("previewLink", "")
+    for b in BOOKS.values():
+        if b.get("category", "").lower() != "computer science":
+            continue
 
-        results.append({
-            "id": volume_id,
-            "title": title,
-            "author": authors,
-            "description": desc,
-            "preview_link": preview
-        })
+        if q == "":
+            results.append({"id": b["id"], "title": b["title"], "author": b["author"]})
+        else:
+            text = (b["title"] + " " + b["author"] + " " + b["description"]).lower()
+            if q in text:
+                results.append({"id": b["id"], "title": b["title"], "author": b["author"]})
 
     return jsonify(results)
 
 
-@app.route("/read-book/<volume_id>")
-def read_book(volume_id):
-    """
-    Reading mode page for one online book (Google Books).
-    """
-    try:
-        r = requests.get(f"{GOOGLE_BOOKS_API}/{volume_id}", timeout=10)
-        if r.status_code != 200:
-            return abort(404)
-        item = r.json()
-    except Exception as e:
-        print("detail error:", e)
-        return abort(404)
-
-    info = item.get("volumeInfo", {}) or {}
-
-    book = {
-        "id": volume_id,
-        "title": info.get("title", "Untitled"),
-        "author": ", ".join(info.get("authors", [])),
-        "description": info.get("description", ""),
-        "page_count": info.get("pageCount"),
-        "publisher": info.get("publisher"),
-        "published_date": info.get("publishedDate"),
-        "categories": ", ".join(info.get("categories", [])),
-        "preview_link": info.get("previewLink", "")
-    }
-
+@app.route("/read-book/<int:book_id>")
+def read_book(book_id):
+    if "user_id" not in session:
+        return redirect(url_for("login_page"))
+    book = BOOKS.get(book_id)
+    if not book:
+        abort(404)
     return render_template("read_book.html", book=book)
 
 
-# ---------------------------------------
-
-if __name__ == "__main__":
+if _name_ == "_main_":
     app.run(debug=True)
