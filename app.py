@@ -5,7 +5,7 @@ from flask import (
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 
-app = Flask(_name_)
+app = Flask(__name__)
 app.secret_key = "change-this-secret-key"   # koi random string rakh lena
 
 DB_NAME = "users.db"
@@ -112,3 +112,4 @@ def api_login():
 
 if _name_ == "_main_":
     app.run(debug=True)
+
